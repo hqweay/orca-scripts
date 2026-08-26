@@ -113,5 +113,15 @@
     "version": 1,
     "file": "zen-mode.js",
     "description": "沉浸式写作 CSS：隐藏干扰元素，当前聚焦块高亮，其余内容虚化。"
+  },
+  {
+    "id": "mutual-link",
+    "name": "互链双端",
+    "version": 1,
+    "file": "mutual-link.js",
+    "description": "⌘C 复制块 A，光标落块 B 触发脚本，A/B 互相追加指向对方的块链接（自愈版：无剪贴板权限也能识别复制块）。",
+    "tagProps": {
+      "shortcut": "meta+shift+l"
+    }
   }
 ]
