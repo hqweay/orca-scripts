@@ -1,0 +1,107 @@
+[
+  {
+    "id": "ai-fill-prop",
+    "name": "ai-fill-prop",
+    "version": 2,
+    "file": "ai-fill-prop.js",
+    "description": ""
+  },
+  {
+    "id": "elegant-timer",
+    "name": "elegant-timer",
+    "version": 2,
+    "file": "elegant-timer.js",
+    "description": ""
+  },
+  {
+    "id": "embed-children",
+    "name": "embed-children",
+    "version": 1,
+    "file": "embed-children.js",
+    "description": ""
+  },
+  {
+    "id": "font-color",
+    "name": "font-color",
+    "version": 1,
+    "file": "font-color.js",
+    "description": ""
+  },
+  {
+    "id": "knowledge-forge",
+    "name": "knowledge-forge",
+    "version": 1,
+    "file": "knowledge-forge.js",
+    "description": ""
+  },
+  {
+    "id": "moments-feed",
+    "name": "moments-feed",
+    "version": 1,
+    "file": "moments-feed.js",
+    "description": ""
+  },
+  {
+    "id": "paste-block-ref",
+    "name": "paste-block-ref",
+    "version": 1,
+    "file": "paste-block-ref.js",
+    "description": ""
+  },
+  {
+    "id": "pomodoro",
+    "name": "pomodoro",
+    "version": 1,
+    "file": "pomodoro.js",
+    "description": ""
+  },
+  {
+    "id": "quick-tag",
+    "name": "quick-tag",
+    "version": 1,
+    "file": "quick-tag.js",
+    "description": ""
+  },
+  {
+    "id": "recent-visits",
+    "name": "recent-visits",
+    "version": 5,
+    "file": "recent-visits.js",
+    "description": ""
+  },
+  {
+    "id": "sidebar-layout",
+    "name": "sidebar-layout",
+    "version": 2,
+    "file": "sidebar-layout.js",
+    "description": ""
+  },
+  {
+    "id": "staging-box",
+    "name": "staging-box",
+    "version": 1,
+    "file": "staging-box.js",
+    "description": ""
+  },
+  {
+    "id": "workbench-layout-sidetool",
+    "name": "workbench-layout-sidetool",
+    "version": 1,
+    "file": "workbench-layout-sidetool.js",
+    "description": ""
+  },
+  {
+    "id": "workbench-layout",
+    "name": "workbench-layout",
+    "version": 1,
+    "file": "workbench-layout.js",
+    "description": ""
+  },
+  {
+    "id": "zen-mode",
+    "name": "zen-mode",
+    "version": 1,
+    "file": "zen-mode.js",
+    "description": ""
+  }
+]
