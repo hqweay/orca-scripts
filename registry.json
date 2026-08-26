@@ -1,107 +1,107 @@
 [
   {
     "id": "ai-fill-prop",
-    "name": "ai-fill-prop",
+    "name": "AI 属性填充",
     "version": 2,
     "file": "ai-fill-prop.js",
-    "description": ""
+    "description": "给标签的 @ 属性加 ✨：写提示词（可用 [属性名] 引用其它属性），点击即由 AI 生成填充。"
   },
   {
     "id": "elegant-timer",
-    "name": "elegant-timer",
+    "name": "计时打卡",
     "version": 2,
     "file": "elegant-timer.js",
-    "description": ""
+    "description": "计时打卡挂件：录入任务名开始计时，结束自动写入结束时间；默认任务名、历史、配色可配置。"
   },
   {
     "id": "embed-children",
-    "name": "embed-children",
+    "name": "块嵌入子项",
     "version": 1,
     "file": "embed-children.js",
-    "description": ""
+    "description": "让「块嵌入子项」标签的镜像块自动穿透展示全部子项，并应用无缝样式。"
   },
   {
     "id": "font-color",
-    "name": "font-color",
+    "name": "全局字体颜色",
     "version": 1,
     "file": "font-color.js",
-    "description": ""
+    "description": "从色盘选色实时改变全局文字颜色，选择本地保存，卸载自动还原。"
   },
   {
     "id": "knowledge-forge",
-    "name": "knowledge-forge",
+    "name": "AI 知识熔炉",
     "version": 1,
     "file": "knowledge-forge.js",
-    "description": ""
+    "description": "搜索/按标签/拖拽收集笔记块，AI 蒸馏成总结、关联、行动项、改写，一键写回今日日志。"
   },
   {
     "id": "moments-feed",
-    "name": "moments-feed",
+    "name": "碎碎念朋友圈",
     "version": 1,
     "file": "moments-feed.js",
-    "description": ""
+    "description": "朋友圈式「碎碎念」挂件：列出打「碎碎念」标签的块，AI 朋友式回复、心情分类、每周总结。"
   },
   {
     "id": "paste-block-ref",
-    "name": "paste-block-ref",
+    "name": "粘贴选中文本为块引用",
     "version": 1,
     "file": "paste-block-ref.js",
-    "description": ""
+    "description": "把复制的块转为块引用：选中文字按 alt+v 原地折叠成指向该块的引用。"
   },
   {
     "id": "pomodoro",
-    "name": "pomodoro",
+    "name": "小番茄钟",
     "version": 1,
     "file": "pomodoro.js",
-    "description": ""
+    "description": "侧边栏番茄钟：25 分钟专注 / 5 分钟休息，每完成一个周期自动写记录到今日日志。"
   },
   {
     "id": "quick-tag",
-    "name": "quick-tag",
+    "name": "快捷打标签",
     "version": 1,
     "file": "quick-tag.js",
-    "description": ""
+    "description": "给当前光标所在块（或右键选中块）快速打标签，支持多标签，快捷键 meta+l。"
   },
   {
     "id": "recent-visits",
-    "name": "recent-visits",
+    "name": "最近访问",
     "version": 5,
     "file": "recent-visits.js",
-    "description": ""
+    "description": "自动记录最近打开过的块/日记，点击即跳回，默认保留 30 条。"
   },
   {
     "id": "sidebar-layout",
-    "name": "sidebar-layout",
+    "name": "侧边栏切换布局",
     "version": 2,
     "file": "sidebar-layout.js",
-    "description": ""
+    "description": "侧边栏「更多」tab 注册布局切换组，支持按「HH:MM=布局名」定时自动切换。"
   },
   {
     "id": "staging-box",
-    "name": "staging-box",
+    "name": "暂存箱",
     "version": 1,
     "file": "staging-box.js",
-    "description": ""
+    "description": "暂存箱挂件：把块拖进来暂存，一键移动到光标处。"
   },
   {
     "id": "workbench-layout-sidetool",
-    "name": "workbench-layout-sidetool",
+    "name": "工作台布局：侧边栏一键打开",
     "version": 1,
     "file": "workbench-layout-sidetool.js",
-    "description": ""
+    "description": "编辑器侧边栏加按钮，点击直接打开工作台并切换到指定布局。"
   },
   {
     "id": "workbench-layout",
-    "name": "workbench-layout",
+    "name": "工作台布局切换",
     "version": 1,
     "file": "workbench-layout.js",
-    "description": ""
+    "description": "侧边栏注册「工作台布局」组，一键切换工作台保存的布局；暴露 window.workbench API。"
   },
   {
     "id": "zen-mode",
-    "name": "zen-mode",
+    "name": "禅模式",
     "version": 1,
     "file": "zen-mode.js",
-    "description": ""
+    "description": "沉浸式写作 CSS：隐藏干扰元素，当前聚焦块高亮，其余内容虚化。"
   }
 ]
