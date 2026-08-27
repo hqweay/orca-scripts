@@ -285,13 +285,8 @@ function render() {
 // 事件委托一次绑定（render 重建 innerHTML 不影响 root 上的监听）。
 root.addEventListener('dragover', function (e) {
   e.preventDefault();
-  e.stopPropagation(); // 阻断宿主全局拖拽提示（拖放文件以插入）
   var d = root.querySelector('.cw-drop');
   if (d) d.classList.add('cw-active');
-});
-root.addEventListener('dragenter', function (e) {
-  e.preventDefault();
-  e.stopPropagation();
 });
 root.addEventListener('dragleave', function () {
   var d = root.querySelector('.cw-drop');
