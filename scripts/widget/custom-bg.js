@@ -23,6 +23,7 @@ body.itx-bg .orca-panels-container {
 .itx-bg-thumb { position: relative; width: 44px; height: 44px; border-radius: 6px; background-size: cover; background-position: center; border: 1.5px solid transparent; cursor: pointer; opacity: .8; }
 .itx-bg-thumb.itx-on { border-color: var(--orca-color-primary-5, #3b82f6); opacity: 1; }
 .itx-bg-thumb-x { position: absolute; top: -5px; right: -5px; width: 14px; height: 14px; line-height: 13px; text-align: center; border-radius: 50%; background: var(--orca-color-danger, #d33); color: #fff; font-size: 10px; cursor: pointer; }
+.itx-bg-empty { margin-top: 8px; font-size: 12px; opacity: .55; }
 .itx-bg-actions { margin-top: 8px; }
 .itx-bg-clear { border: 1px solid var(--orca-color-border, rgba(127,127,127,0.25)); background: transparent; color: inherit; border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
 .itx-bg-clear:hover { border-color: var(--orca-color-danger, #d33); color: var(--orca-color-danger, #d33); }`;
@@ -32,7 +33,7 @@ body.itx-bg .orca-panels-container {
   var widgetStyle = null;
   var state = loadState();
   var detachDrop = null;
-  var dropEl = null;
+  var containerRef = null;
 
   function loadState() {
     var s = $inject.storage.get("state") || {};
@@ -42,18 +43,30 @@ body.itx-bg .orca-panels-container {
     };
   }
   function saveState() {
-    // 控制体积：只保留缩略所需的最小图（文件已是降采样 data URL；链接/资源路径是短串）
     try {
       $inject.storage.set("state", { list: state.list.slice(0, MAX_IMAGES), current: state.current });
     } catch (e) {
       orca.notify("error", "图库保存失败（图片可能过大），已保留当前背景");
-      // 存失败时只留当前一张，尽力保存
       $inject.storage.set("state", { list: [{ src: state.current, name: "", at: Date.now() }], current: state.current });
     }
   }
 
   function bgUrl(src) {
     return "url(\"" + String(src).replace(/"/g, '\\"') + "\")";
+  }
+
+  /** 相对路径 → 可加载的资产 URL（对齐 workbench random 的 resolveAssetUrl）。 */
+  function resolveAssetUrl(src) {
+    if (!src) return "";
+    if (/^(https?:|data:|blob:)/i.test(src)) return src;
+    var o = (window.orca && orca.state) || {};
+    var dir = (o.repoDir || "").trim();
+    if (!dir && o.dataDir && o.repo) {
+      dir = (String(o.dataDir).replace(/\/+$/, "") + "/repos/" + o.repo);
+    }
+    if (!dir) return "";
+    var name = String(src).replace(/^\.?\//, "").split(/[?#]/)[0];
+    return "file://" + dir + "/assets/" + encodeURI(name);
   }
 
   function applyBg() {
@@ -101,7 +114,7 @@ body.itx-bg .orca-panels-container {
     state.current = src;
     saveState();
     applyBg();
-    refreshUi();
+    renderWidget();
   }
   function removeImage(src) {
     state.list = state.list.filter(function (it) { return it.src !== src; });
@@ -110,7 +123,7 @@ body.itx-bg .orca-panels-container {
     }
     saveState();
     applyBg();
-    refreshUi();
+    renderWidget();
   }
 
   function hasBlockPayload(dt) {
@@ -119,17 +132,6 @@ body.itx-bg .orca-panels-container {
       var parts = String(t).split("/");
       return parts.length === 2 && parts[0] === "orca";
     });
-  }
-
-  function dropDebugInfo(dt) {
-    try {
-      return JSON.stringify({
-        types: dt ? Array.prototype.slice.call(dt.types) : [],
-        files: dt && dt.files ? dt.files.length : 0,
-        fileType: dt && dt.files && dt.files[0] ? dt.files[0].type : "",
-        uri: dt ? (dt.getData("text/uri-list") || dt.getData("text/plain")) : "",
-      });
-    } catch (e) { return String(e); }
   }
 
   async function handleDrop(dt) {
@@ -151,26 +153,30 @@ body.itx-bg .orca-panels-container {
       addImage(src, name);
       orca.notify("success", "已加入背景图库");
     } else {
-      console.warn("[custom-bg] drop not recognized:", dropDebugInfo(dt));
-      orca.notify("warn", "没识别到图片: " + dropDebugInfo(dt));
+      orca.notify("warn", "没识别到图片（支持文件 / 图片链接 / 笔记图片块）");
     }
   }
 
   async function handleBlockDrops(ids) {
     if (!ids || !ids.length) return;
     var blocks = (await orca.invokeBackend("get-blocks", ids)) || [];
-    console.warn("[custom-bg] block drop ids:", ids, "blocks:", blocks.length, "first properties:", blocks[0] && blocks[0].properties);
     for (var i = 0; i < blocks.length; i++) {
       var props = (blocks[i].properties || []);
       var repr = null;
       for (var j = 0; j < props.length; j++) { if (props[j].name === "_repr") repr = props[j].value; }
       if (repr && repr.type === "image" && repr.src) {
-        addImage(repr.src, "图片块");
-        orca.notify("success", "已加入背景图库（图片块）");
+        // 相对路径 → file:// 资产 URL（对齐 random 的换算），解析不出就跳过
+        var url = resolveAssetUrl(repr.src);
+        if (url) {
+          addImage(url, "图片块");
+          orca.notify("success", "已加入背景图库（图片块）");
+          return;
+        }
+        orca.notify("warn", "图片块地址解析失败: " + repr.src);
         return;
       }
     }
-    orca.notify("warn", "拖入的块不是图片块（ids: " + ids.join(",") + "）");
+    orca.notify("warn", "拖入的块不是图片块");
   }
 
   function buildHtml() {
@@ -180,30 +186,68 @@ body.itx-bg .orca-panels-container {
     }).join("");
     return [
       '<div class="itx-bg-widget">',
-      '<div class="itx-bg-label">自定义背景（' + state.list.length + ' 张）</div>',
+      '<div class="itx-bg-label">自定义背景（' + state.list.length + '/' + MAX_IMAGES + '）</div>',
       '<div class="itx-bg-drop">把图片拖到这里<br><small style="opacity:.6">本地文件 / 图片链接 / 笔记图片块</small></div>',
       state.current ? '<div class="itx-bg-preview" style="background-image:' + bgUrl(state.current) + '"></div>' : '',
-      thumbs ? '<div class="itx-bg-thumbs">' + thumbs + '</div>' : '',
+      state.list.length ? '<div class="itx-bg-thumbs">' + thumbs + '</div>' : '<div class="itx-bg-empty">还没有图片，拖一张进来</div>',
       '<div class="itx-bg-actions"><button class="itx-bg-clear">清除全部</button></div>',
       '</div>',
     ].join("");
   }
 
-  function refreshUi() {
-    try { handle.setStatus(state.current ? "背景 " + state.list.length + " 张" : "无背景"); } catch (e) {}
-    if (!widgetStyle) return;
-    var root = document.querySelector(".itx-bg-widget");
-    if (!root) return;
-    var drop = root.querySelector(".itx-bg-drop");
-    if (drop) drop.innerHTML = state.list.length ? "可再拖图片加入（" + state.list.length + "/" + MAX_IMAGES + "）" : "把图片拖到这里<br><small style=\"opacity:.6\">本地文件 / 图片链接 / 笔记图片块</small>";
-    var label = root.querySelector(".itx-bg-label");
-    if (label) label.textContent = "自定义背景（" + state.list.length + " 张）";
-    var prev = root.querySelector(".itx-bg-preview");
-    if (prev) prev.style.backgroundImage = bgUrl(state.current);
-    var thumbs = Array.prototype.slice.call(root.querySelectorAll(".itx-bg-thumb"));
-    thumbs.forEach(function (t, i) {
-      t.classList.toggle("itx-on", state.list[i] && state.list[i].src === state.current);
+  function bindWidget(container) {
+    var drop = container.querySelector(".itx-bg-drop");
+    var clear = container.querySelector(".itx-bg-clear");
+    if (drop) {
+      drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("itx-drop-active"); });
+      drop.addEventListener("dragleave", function () { drop.classList.remove("itx-drop-active"); });
+      drop.addEventListener("drop", function (e) {
+        e.preventDefault();
+        drop.classList.remove("itx-drop-active");
+        var dt = e.dataTransfer;
+        // 块拖拽（orca/* 载荷）→ 不拦截，交给容器层的 attachBlockDrop 解析
+        if (hasBlockPayload(dt)) return;
+        e.stopPropagation();
+        void handleDrop(dt);
+      });
+    }
+    if (clear) {
+      clear.addEventListener("click", function () {
+        state.list = [];
+        state.current = "";
+        saveState();
+        applyBg();
+        renderWidget();
+      });
+    }
+    // 缩略图点击切换 / × 移除（事件委托在容器上，重渲染后仍有效）
+    container.addEventListener("click", function (e) {
+      var x = e.target.closest(".itx-bg-thumb-x");
+      if (x) {
+        var xi = Number(x.getAttribute("data-x"));
+        var it = state.list[xi];
+        if (it) removeImage(it.src);
+        return;
+      }
+      var t = e.target.closest(".itx-bg-thumb");
+      if (t) {
+        var ti = Number(t.getAttribute("data-i"));
+        var item = state.list[ti];
+        if (item) {
+          state.current = item.src;
+          saveState();
+          applyBg();
+          renderWidget();
+        }
+      }
     });
+  }
+
+  function renderWidget() {
+    try { handle.setStatus(state.current ? "背景 " + state.list.length + " 张" : "无背景"); } catch (e) {}
+    if (!containerRef) return;
+    containerRef.innerHTML = buildHtml();
+    bindWidget(containerRef);
   }
 
   var handle = $inject.registerSidebarGroup({
@@ -212,56 +256,16 @@ body.itx-bg .orca-panels-container {
     icon: "ti ti-photo",
     parent: $inject.scriptGroup || undefined,
     status: state.current ? "背景 " + state.list.length + " 张" : "无背景",
-    render: buildHtml,
+    render: function () { return buildHtml(); },
     onFocus: function (container) {
       if (!widgetStyle) {
         widgetStyle = document.createElement("style");
         widgetStyle.textContent = WIDGET_CSS;
         document.head.appendChild(widgetStyle);
       }
-      dropEl = container.querySelector(".itx-bg-drop");
-      var clear = container.querySelector(".itx-bg-clear");
-      if (dropEl) {
-        dropEl.addEventListener("dragover", function (e) {
-          e.preventDefault();
-          dropEl.classList.add("itx-drop-active");
-        });
-        dropEl.addEventListener("dragleave", function () { dropEl.classList.remove("itx-drop-active"); });
-        dropEl.addEventListener("drop", function (e) {
-          e.preventDefault();
-          dropEl.classList.remove("itx-drop-active");
-          var dt = e.dataTransfer;
-          // 块拖拽（orca/* 载荷）→ 不拦截，交给容器层的 attachBlockDrop 解析
-          if (hasBlockPayload(dt)) return;
-          e.stopPropagation();
-          void handleDrop(dt);
-        });
-      }
-      if (clear) {
-        clear.addEventListener("click", function () {
-          state.list = [];
-          state.current = "";
-          saveState();
-          applyBg();
-          refreshUi();
-        });
-      }
-      // 缩略图点击切换 / × 移除（事件委托）
-      container.addEventListener("click", function (e) {
-        var x = e.target.closest(".itx-bg-thumb-x");
-        if (x) {
-          var xi = Number(x.getAttribute("data-x"));
-          var it = state.list[xi];
-          if (it) removeImage(it.src);
-          return;
-        }
-        var t = e.target.closest(".itx-bg-thumb");
-        if (t) {
-          var ti = Number(t.getAttribute("data-i"));
-          var item = state.list[ti];
-          if (item) { state.current = item.src; saveState(); applyBg(); refreshUi(); }
-        }
-      });
+      containerRef = container;
+      container.innerHTML = buildHtml();
+      bindWidget(container);
       // 笔记图片块拖入（容器层，接收块拖拽）
       if (!detachDrop) detachDrop = $inject.attachBlockDrop(container, function (ids) { void handleBlockDrops(ids); });
       return function () {
