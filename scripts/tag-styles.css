@@ -32,10 +32,10 @@
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 4px 10px 8px;
 }
-/* 卡片内隐藏「卡片」样式标签 chip（想保留可删掉这一段） */
-.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]) > .orca-repr-main-content > .orca-tags > .orca-tag[data-name="卡片"] {
+/* 【可选】卡片内隐藏「卡片」样式标签 chip：取消注释即可开启 */
+/* .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]) > .orca-repr-main-content > .orca-tags > .orca-tag[data-name="卡片"] {
   display: none;
-}
+} */
 
 /* ====================== 卡片列表 ====================== */
 /* 打上 #卡片列表 的块：每个直接子块各成一张卡片 */
@@ -58,7 +58,7 @@
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 4px 10px 8px;
 }
-/* 卡片列表内隐藏「卡片列表」样式标签 chip（想保留可删掉这一段） */
-.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) > .orca-repr-main-content > .orca-tags > .orca-tag[data-name="卡片列表"] {
+/* 【可选】卡片列表内隐藏「卡片列表」样式标签 chip：取消注释即可开启 */
+/* .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) > .orca-repr-main-content > .orca-tags > .orca-tag[data-name="卡片列表"] {
   display: none;
-}
+} */
