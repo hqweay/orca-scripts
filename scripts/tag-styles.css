@@ -19,7 +19,6 @@
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 8px 10px;
   box-shadow: none;
-  transition: background 0.15s;
 }
 /* 有子块 → 主行只留上半圆角，下半交给子块容器 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]):has(+ .orca-repr-children) {
@@ -34,9 +33,9 @@
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 4px 10px 8px;
 }
-/* hover 微交互：背景加深 */
+/* 无 hover 交互：主行单独变背景会和子块行不协调，去掉（保留 box-shadow 抑制宿主阴影） */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]):hover {
-  background: var(--orca-color-bg-2, rgba(127,127,127,0.08));
+  box-shadow: none !important;
 }
 
 /* 【可选】卡片阴影（多段卡片（有子块）在拼接处会有细微接缝，可自行取舍） */
@@ -58,7 +57,6 @@
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 8px 10px;
   box-shadow: none;
-  transition: background 0.15s;
 }
 /* 子块有自己的子块 → 上半圆角 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main:has(+ .orca-repr-children) {
@@ -77,13 +75,14 @@
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block {
   margin-top: 8px;
 }
-/* 卡片列表模式下隐藏层级 scope-line（卡片内部竖线干扰，去掉更干净） */
+/* 卡片列表模式下隐藏层级 scope-line：标签块自身的（在 repr-main-none-editable 里）+ 各子块卡的 */
+.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) .orca-repr-scope-line,
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children .orca-repr-scope-line {
   display: none;
 }
-/* hover 微交互：背景加深 */
+/* 无 hover 交互（同卡片：主行单独变背景不协调），仅抑制宿主阴影 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main:hover {
-  background: var(--orca-color-bg-2, rgba(127,127,127,0.08));
+  box-shadow: none !important;
 }
 
 /* 【可选】卡片列表内隐藏「卡片列表」样式标签 chip：取消注释即可开启 */
