@@ -203,22 +203,26 @@ function imageSrcOf(b) {
   return null;
 }
 
-/** 查询块执行查询 → 结果块 id 列表（对齐 workbench random 的 query 用法）。 */
-async function queryResultIds(b) {
+/** 查询块执行查询 → 图片块 id 列表。
+ * 在查询层面 AND 上「_repr.type = image」过滤（kind 9 类型条件，op 5 = QueryHas，
+ * 运行时必须显式给 op），而非拉回全部结果再 JS 遍历过滤。 */
+async function queryImageIds(b) {
   var repr = null;
   var props = (b && b.properties) || [];
   for (var i = 0; i < props.length; i++) {
     if (props[i].name === '_repr') repr = props[i].value;
   }
   if (!repr || repr.type !== 'query' || !repr.q || !repr.q.q) return [];
-  var ids = await orca.invokeBackend('query', {
-    q: JSON.parse(JSON.stringify(repr.q.q)),
-    pageSize: 100,
-  });
+  var q = JSON.parse(JSON.stringify(repr.q.q));
+  var imgFilter = { kind: 9, types: { op: 5, value: ['image'] } };
+  var merged = (q && q.kind === 100 && Array.isArray(q.conditions))
+    ? { kind: 100, conditions: q.conditions.concat(imgFilter) }
+    : { kind: 100, conditions: [q, imgFilter] };
+  var ids = await orca.invokeBackend('query', { q: merged, pageSize: 100 });
   return Array.isArray(ids) ? ids : [];
 }
 
-/** 拖入块：图片块直接取图；查询块执行查询收集结果里的所有图片块。 */
+/** 拖入块：图片块直接取图；查询块执行查询（含图片过滤）收集所有图片块。 */
 async function handleBlockDrop(ids) {
   if (!ids || !ids.length) return;
   var blocks = (await orca.invokeBackend('get-blocks', ids)) || [];
@@ -226,7 +230,7 @@ async function handleBlockDrop(ids) {
   for (var i = 0; i < blocks.length; i++) {
     var src = imageSrcOf(blocks[i]);
     if (src) { addImage(src, '图片块'); added++; continue; }
-    var qIds = await queryResultIds(blocks[i]);
+    var qIds = await queryImageIds(blocks[i]);
     if (!qIds.length) continue;
     var qBlocks = (await orca.invokeBackend('get-blocks', qIds)) || [];
     for (var j = 0; j < qBlocks.length; j++) {
