@@ -121,6 +121,17 @@ body.itx-bg .orca-panels-container {
     });
   }
 
+  function dropDebugInfo(dt) {
+    try {
+      return JSON.stringify({
+        types: dt ? Array.prototype.slice.call(dt.types) : [],
+        files: dt && dt.files ? dt.files.length : 0,
+        fileType: dt && dt.files && dt.files[0] ? dt.files[0].type : "",
+        uri: dt ? (dt.getData("text/uri-list") || dt.getData("text/plain")) : "",
+      });
+    } catch (e) { return String(e); }
+  }
+
   async function handleDrop(dt) {
     var src = null;
     var name = "";
@@ -140,13 +151,15 @@ body.itx-bg .orca-panels-container {
       addImage(src, name);
       orca.notify("success", "已加入背景图库");
     } else {
-      orca.notify("warn", "没识别到图片（支持文件 / 图片链接 / 笔记图片块）");
+      console.warn("[custom-bg] drop not recognized:", dropDebugInfo(dt));
+      orca.notify("warn", "没识别到图片: " + dropDebugInfo(dt));
     }
   }
 
   async function handleBlockDrops(ids) {
     if (!ids || !ids.length) return;
     var blocks = (await orca.invokeBackend("get-blocks", ids)) || [];
+    console.warn("[custom-bg] block drop ids:", ids, "blocks:", blocks.length, "first properties:", blocks[0] && blocks[0].properties);
     for (var i = 0; i < blocks.length; i++) {
       var props = (blocks[i].properties || []);
       var repr = null;
@@ -157,7 +170,7 @@ body.itx-bg .orca-panels-container {
         return;
       }
     }
-    orca.notify("warn", "拖入的块不是图片块");
+    orca.notify("warn", "拖入的块不是图片块（ids: " + ids.join(",") + "）");
   }
 
   function buildHtml() {
