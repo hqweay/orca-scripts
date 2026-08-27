@@ -7,7 +7,7 @@
 - `scripts.json` — 脚本索引（id / name / version / file / category）
 - `scripts/<id>.js` — 脚本源码；头部带 `// @inject-template-id: <id>` 自描述标记
 - `cards.json` — 卡片索引（id / name / version / file / category）
-- `scripts/cards/<id>.js` — 卡片 HTML fragment；头部带 `<!-- @inject-template-id: <id> -->` 自描述标记
+- `cards/<id>.js` — 卡片 HTML fragment；头部带 `<!-- @inject-template-id: <id> -->` 自描述标记
 
 ## 发布流程
 

@@ -3,7 +3,7 @@
     "id": "gh-trending",
     "name": "GitHub 今日热榜",
     "version": 1,
-    "file": "cards/gh-trending.js",
+    "file": "gh-trending.js",
     "description": "最近 24 小时创建的 GitHub 仓库，按 Star 数排序",
     "category": "data"
   },
@@ -11,8 +11,8 @@
     "id": "random-wallpaper",
     "name": "随机美图",
     "version": 1,
-    "file": "cards/random-wallpaper.js",
-    "description": "Lorem Picsum 随机壁纸，悬停可换一张",
+    "file": "random-wallpaper.js",
+    "description": "Lorem Picsum 随机壁纸，刷新组件即换图",
     "category": "image"
   }
 ]
