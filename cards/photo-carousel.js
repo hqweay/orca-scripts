@@ -4,7 +4,7 @@
   .cw-card{font-family:var(--orca-font,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif);box-sizing:border-box;}
   .cw-card *,.cw-card *::before,.cw-card *::after{box-sizing:border-box;}
   .cw-stage{position:relative;height:340px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#f2f4f7,#e4e7ec);}
-  .cw-img{display:block;width:100%;height:100%;object-fit:cover;}
+  .cw-img{display:block;width:100%;height:100%;object-fit:contain;}
   .cw-count{position:absolute;right:8px;bottom:8px;font-size:11px;color:#fff;background:rgba(0,0,0,.5);padding:2px 8px;border-radius:999px;}
   .cw-drop{height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1.5px dashed var(--orca-border,rgba(127,127,127,.4));border-radius:12px;font-size:12px;color:var(--orca-text-secondary,#57606a);}
   .cw-drop.cw-active{border-color:var(--orca-accent,#4078c0);background:rgba(64,120,192,.06);}
@@ -13,11 +13,7 @@
   .cw-thumb.cw-on{border-color:var(--orca-accent,#4078c0);opacity:1;}
   .cw-x{position:absolute;top:-5px;right:-5px;width:14px;height:14px;line-height:13px;text-align:center;border-radius:50%;background:var(--orca-danger,#d33);color:#fff;font-size:10px;cursor:pointer;}
   .cw-hint{margin-top:8px;font-size:11px;color:var(--orca-text-secondary,#57606a);opacity:.6;text-align:center;}
-  /* 完整大图：点击缩略图区大图打开，全屏 contain 显示，滚轮缩放 */
-  .cw-lb{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:zoom-out;}
-  .cw-lb-img{max-width:92vw;max-height:92vh;object-fit:contain;transform-origin:center;border-radius:4px;}
 </style>
-<div class="cw-lb" id="cwLb" hidden></div>
 </div>
 <script>
 // 图片轮播卡片：拖入图片（本地文件 / 图片链接 / 笔记图片块 / 查询块）→ 自动轮播。
@@ -286,34 +282,6 @@ function render() {
 }
 
 // 完整大图：点缩略图区大图打开（contain 完整显示），滚轮缩放，点击/Esc 关闭。
-var lb = document.getElementById('cwLb');
-var lbScale = 1;
-function openLb(src) {
-  if (!lb || !src) return;
-  lbScale = 1;
-  lb.innerHTML = '<img class="cw-lb-img" style="transform:scale(1)" src="' + String(src).replace(/"/g, '&quot;') + '" alt="">';
-  lb.hidden = false;
-  stopAuto();
-}
-function closeLb() {
-  if (!lb) return;
-  lb.hidden = true;
-  lb.innerHTML = '';
-  startAuto();
-}
-lb.addEventListener('click', function () { closeLb(); });
-lb.addEventListener('wheel', function (e) {
-  if (lb.hidden) return;
-  e.preventDefault();
-  var img = lb.querySelector('.cw-lb-img');
-  if (!img) return;
-  lbScale = Math.min(5, Math.max(1, lbScale + (e.deltaY < 0 ? 0.15 : -0.15)));
-  img.style.transform = 'scale(' + lbScale + ')';
-}, { passive: false });
-window.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape' && lb && !lb.hidden) closeLb();
-});
-
 // 事件委托一次绑定（render 重建 innerHTML 不影响 root 上的监听）。
 root.addEventListener('dragover', function (e) {
   e.preventDefault();
@@ -336,8 +304,6 @@ root.addEventListener('drop', function (e) {
   void handleDrop(e.dataTransfer);
 });
 root.addEventListener('click', function (e) {
-  var lbImg = e.target.closest('.cw-img');
-  if (lbImg) { openLb(lbImg.src); return; }
   var x = e.target.closest('.cw-x');
   if (x) { var it = state.list[Number(x.getAttribute('data-i'))]; if (it) removeImage(it.src); return; }
   var t = e.target.closest('.cw-thumb');
