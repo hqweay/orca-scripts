@@ -65,17 +65,16 @@ async function loadState() {
   var idx = Number(state.idx);
   if (!Number.isFinite(idx) || idx < 0 || idx >= state.list.length) state.idx = state.list.length ? 0 : -1;
 }
-/** 写块数据属性：setProperties 只写后端，不自动同步前端 state；
- * 手动更新 orca.state.blocks 的 properties（Valtio 代理广播）让其它视图
- * （如日记里的同一 embed 块）感知变化自动重跑（对齐 BlockNodeItem 模式）。 */
+/** 写块数据属性：setProperties 只写后端，不自动同步前端 state。
+ * 用 writeBlockIntoState 同款做法（get-block 重拉整块写回 state，Valtio 代理广播），
+ * 让其它视图（如日记里的同一 embed 块）感知变化自动重跑（对齐 time-log 的
+ * syncBlocksAfterBackendWrite）。 */
 function syncStateProps() {
-  var b = (orca && orca.state && orca.state.blocks) ? orca.state.blocks[BLOCK_ID] : null;
-  if (!b) return;
-  if (!b.properties) b.properties = [];
-  var entry = { name: DATA_PROP, type: 0, value: JSON.stringify(state) };
-  var idx = b.properties.findIndex(function (p) { return p.name === DATA_PROP; });
-  if (idx >= 0) b.properties[idx] = entry;
-  else b.properties.push(entry);
+  return orca.invokeBackend('get-block', BLOCK_ID).then(function (b) {
+    if (b && b.id != null && orca.state && orca.state.blocks) {
+      orca.state.blocks[b.id] = b;
+    }
+  }).catch(function () {});
 }
 function saveState() {
   if (BLOCK_ID == null) return;
