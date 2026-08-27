@@ -18,6 +18,7 @@
   border-radius: 10px;
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 8px 10px;
+  transition: background 0.15s, box-shadow 0.15s;
 }
 /* 有子块 → 主行只留上半圆角，下半交给子块容器 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]):has(+ .orca-repr-children) {
@@ -32,6 +33,17 @@
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 4px 10px 8px;
 }
+/* hover 微交互：背景加深 */
+.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]):hover {
+  background: var(--orca-color-bg-2, rgba(127,127,127,0.08));
+}
+
+/* 【可选】卡片阴影（多段卡片（有子块）在拼接处会有细微接缝，可自行取舍） */
+/* .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]),
+   .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]) + .orca-repr-children {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+} */
+
 /* 【可选】卡片内隐藏「卡片」样式标签 chip：取消注释即可开启 */
 /* .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]) > .orca-repr-main-content > .orca-tags > .orca-tag[data-name="卡片"] {
   display: none;
@@ -44,6 +56,7 @@
   border-radius: 10px;
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 8px 10px;
+  transition: background 0.15s, box-shadow 0.15s;
 }
 /* 子块有自己的子块 → 上半圆角 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main:has(+ .orca-repr-children) {
@@ -58,6 +71,15 @@
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 4px 10px 8px;
 }
+/* 兄弟卡片间距（margin-top 相邻折叠，卡片间约 8px，首卡与父块也留出呼吸） */
+.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block {
+  margin-top: 8px;
+}
+/* hover 微交互：背景加深 */
+.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main:hover {
+  background: var(--orca-color-bg-2, rgba(127,127,127,0.08));
+}
+
 /* 【可选】卡片列表内隐藏「卡片列表」样式标签 chip：取消注释即可开启 */
 /* .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) > .orca-repr-main-content > .orca-tags > .orca-tag[data-name="卡片列表"] {
   display: none;
