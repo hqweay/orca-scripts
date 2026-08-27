@@ -3,204 +3,228 @@
     "id": "ai-fill-prop",
     "name": "AI 属性填充",
     "version": 2,
-    "file": "ai-fill-prop.js",
-    "description": "给标签的 @ 属性加 ✨：写提示词（可用 [属性名] 引用其它属性），点击即由 AI 生成填充。"
+    "file": "ai/ai-fill-prop.js",
+    "description": "给标签的 @ 属性加 ✨：写提示词（可用 [属性名] 引用其它属性），点击即由 AI 生成填充。",
+    "category": "ai"
   },
   {
     "id": "elegant-timer",
     "name": "计时打卡",
     "version": 2,
-    "file": "elegant-timer.js",
-    "description": "计时打卡挂件：录入任务名开始计时，结束自动写入结束时间；默认任务名、历史、配色可配置。"
+    "file": "widget/elegant-timer.js",
+    "description": "计时打卡挂件：录入任务名开始计时，结束自动写入结束时间；默认任务名、历史、配色可配置。",
+    "category": "widget"
   },
   {
     "id": "embed-children",
     "name": "块嵌入子项",
     "version": 1,
-    "file": "embed-children.js",
+    "file": "utility/embed-children.js",
     "description": "让「块嵌入子项」标签的镜像块自动穿透展示全部子项，并应用无缝样式。",
-    "lang": "css"
+    "lang": "css",
+    "category": "utility"
   },
   {
     "id": "font-color",
     "name": "全局字体颜色",
     "version": 1,
-    "file": "font-color.js",
-    "description": "从色盘选色实时改变全局文字颜色，选择本地保存，卸载自动还原。"
+    "file": "widget/font-color.js",
+    "description": "从色盘选色实时改变全局文字颜色，选择本地保存，卸载自动还原。",
+    "category": "widget"
   },
   {
     "id": "knowledge-forge",
     "name": "AI 知识熔炉",
     "version": 1,
-    "file": "knowledge-forge.js",
-    "description": "搜索/按标签/拖拽收集笔记块，AI 蒸馏成总结、关联、行动项、改写，一键写回今日日志。"
+    "file": "ai/knowledge-forge.js",
+    "description": "搜索/按标签/拖拽收集笔记块，AI 蒸馏成总结、关联、行动项、改写，一键写回今日日志。",
+    "category": "ai"
   },
   {
     "id": "moments-feed",
     "name": "碎碎念朋友圈",
     "version": 1,
-    "file": "moments-feed.js",
-    "description": "朋友圈式「碎碎念」挂件：列出打「碎碎念」标签的块，AI 朋友式回复、心情分类、每周总结。"
+    "file": "widget/moments-feed.js",
+    "description": "朋友圈式「碎碎念」挂件：列出打「碎碎念」标签的块，AI 朋友式回复、心情分类、每周总结。",
+    "category": "widget"
   },
   {
     "id": "paste-block-ref",
     "name": "粘贴选中文本为块引用",
     "version": 1,
-    "file": "paste-block-ref.js",
+    "file": "utility/paste-block-ref.js",
     "description": "把复制的块转为块引用：选中文字按 alt+v 原地折叠成指向该块的引用。",
     "tagProps": {
       "shortcut": "alt+v"
-    }
+    },
+    "category": "utility"
   },
   {
     "id": "pomodoro",
     "name": "小番茄钟",
     "version": 1,
-    "file": "pomodoro.js",
-    "description": "侧边栏番茄钟：25 分钟专注 / 5 分钟休息，每完成一个周期自动写记录到今日日志。"
+    "file": "widget/pomodoro.js",
+    "description": "侧边栏番茄钟：25 分钟专注 / 5 分钟休息，每完成一个周期自动写记录到今日日志。",
+    "category": "widget"
   },
   {
     "id": "quick-tag",
     "name": "快捷打标签",
     "version": 1,
-    "file": "quick-tag.js",
+    "file": "utility/quick-tag.js",
     "description": "给当前光标所在块（或右键选中块）快速打标签，支持多标签，快捷键 meta+l。",
     "tagProps": {
       "shortcut": "meta+l"
-    }
+    },
+    "category": "utility"
   },
   {
     "id": "recent-visits",
     "name": "最近访问",
     "version": 5,
-    "file": "recent-visits.js",
-    "description": "自动记录最近打开过的块/日记，点击即跳回，默认保留 30 条。"
+    "file": "widget/recent-visits.js",
+    "description": "自动记录最近打开过的块/日记，点击即跳回，默认保留 30 条。",
+    "category": "widget"
   },
   {
     "id": "sidebar-layout",
     "name": "侧边栏切换布局",
     "version": 2,
-    "file": "sidebar-layout.js",
-    "description": "侧边栏「更多」tab 注册布局切换组，支持按「HH:MM=布局名」定时自动切换。"
+    "file": "layout/sidebar-layout.js",
+    "description": "侧边栏「更多」tab 注册布局切换组，支持按「HH:MM=布局名」定时自动切换。",
+    "category": "layout"
   },
   {
     "id": "staging-box",
     "name": "暂存箱",
     "version": 1,
-    "file": "staging-box.js",
-    "description": "暂存箱挂件：把块拖进来暂存，一键移动到光标处。"
+    "file": "utility/staging-box.js",
+    "description": "暂存箱挂件：把块拖进来暂存，一键移动到光标处。",
+    "category": "utility"
   },
   {
     "id": "workbench-layout-sidetool",
     "name": "工作台布局：侧边栏一键打开",
     "version": 1,
-    "file": "workbench-layout-sidetool.js",
+    "file": "layout/workbench-layout-sidetool.js",
     "description": "编辑器侧边栏加按钮，点击直接打开工作台并切换到指定布局。",
     "tagProps": {
       "sidebar": false,
       "sidetool": true
-    }
+    },
+    "category": "layout"
   },
   {
     "id": "workbench-layout",
     "name": "工作台布局切换",
     "version": 1,
-    "file": "workbench-layout.js",
-    "description": "侧边栏注册「工作台布局」组，一键切换工作台保存的布局；暴露 window.workbench API。"
+    "file": "layout/workbench-layout.js",
+    "description": "侧边栏注册「工作台布局」组，一键切换工作台保存的布局；暴露 window.workbench API。",
+    "category": "layout"
   },
   {
     "id": "zen-mode",
     "name": "禅模式",
     "version": 1,
-    "file": "zen-mode.js",
-    "description": "沉浸式写作 CSS：隐藏干扰元素，当前聚焦块高亮，其余内容虚化。"
+    "file": "layout/zen-mode.js",
+    "description": "沉浸式写作 CSS：隐藏干扰元素，当前聚焦块高亮，其余内容虚化。",
+    "category": "layout"
   },
   {
     "id": "mutual-link",
     "name": "互链双端",
     "version": 1,
-    "file": "mutual-link.js",
+    "file": "utility/mutual-link.js",
     "description": "⌘C 复制块 A，光标落块 B 触发脚本，A/B 互相追加指向对方的块链接（自愈版：无剪贴板权限也能识别复制块）。",
     "tagProps": {
       "shortcut": "meta+shift+l"
-    }
+    },
+    "category": "utility"
   },
   {
     "id": "tag-styles",
     "name": "标签样式",
     "version": 7,
-    "file": "tag-styles.css",
+    "file": "layout/tag-styles.css",
     "description": "给块打上指定标签即应用对应样式：#卡片 让该块（含子块）成卡片，#卡片列表 让每个子块各成一张卡片。",
-    "lang": "css"
+    "lang": "css",
+    "category": "layout"
   },
   {
     "id": "texture-newsprint",
     "name": "纹理：新闻纸",
     "version": 1,
-    "file": "texture-newsprint.js",
+    "file": "texture/texture-newsprint.js",
     "description": "给整个应用铺一层半调纸感纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。同一组纹理脚本同时只启用一个。",
     "tagProps": {
       "group": "纹理"
-    }
+    },
+    "category": "texture"
   },
   {
     "id": "texture-embossedpaper",
     "name": "纹理：压纹纸",
     "version": 1,
-    "file": "texture-embossedpaper.js",
+    "file": "texture/texture-embossedpaper.js",
     "description": "给整个应用铺一层直纹压印纸感纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
     "tagProps": {
       "group": "纹理"
-    }
+    },
+    "category": "texture"
   },
   {
     "id": "texture-noise",
     "name": "纹理：噪点",
     "version": 1,
-    "file": "texture-noise.js",
+    "file": "texture/texture-noise.js",
     "description": "给整个应用铺一层细颗粒噪点纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
     "tagProps": {
       "group": "纹理"
-    }
+    },
+    "category": "texture"
   },
   {
     "id": "texture-wood",
     "name": "纹理：木纹",
     "version": 1,
-    "file": "texture-wood.js",
+    "file": "texture/texture-wood.js",
     "description": "给整个应用铺一层暖棕木纹纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
     "tagProps": {
       "group": "纹理"
-    }
+    },
+    "category": "texture"
   },
   {
     "id": "texture-granule",
     "name": "纹理：颗粒",
     "version": 1,
-    "file": "texture-granule.js",
+    "file": "texture/texture-granule.js",
     "description": "给整个应用铺一层粗颗粒质感纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
     "tagProps": {
       "group": "纹理"
-    }
+    },
+    "category": "texture"
   },
   {
     "id": "texture-feathery",
     "name": "纹理：羽丝",
     "version": 1,
-    "file": "texture-feathery.js",
+    "file": "texture/texture-feathery.js",
     "description": "给整个应用铺一层细纤维羽丝纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
     "tagProps": {
       "group": "纹理"
-    }
+    },
+    "category": "texture"
   },
   {
     "id": "texture-velvet",
     "name": "纹理：绒面",
     "version": 1,
-    "file": "texture-velvet.js",
+    "file": "texture/texture-velvet.js",
     "description": "给整个应用铺一层柔光绒面纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
     "tagProps": {
       "group": "纹理"
-    }
+    },
+    "category": "texture"
   }
 ]
