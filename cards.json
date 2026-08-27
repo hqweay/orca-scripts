@@ -6,5 +6,13 @@
     "file": "cards/gh-trending.js",
     "description": "最近 24 小时创建的 GitHub 仓库，按 Star 数排序",
     "category": "data"
+  },
+  {
+    "id": "random-wallpaper",
+    "name": "随机美图",
+    "version": 1,
+    "file": "cards/random-wallpaper.js",
+    "description": "Lorem Picsum 随机壁纸，悬停可换一张",
+    "category": "image"
   }
 ]
