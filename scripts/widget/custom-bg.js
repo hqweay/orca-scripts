@@ -177,6 +177,13 @@ body.itx-bg .orca-panels-container {
     if (dt && dt.files && dt.files.length) {
       var f = dt.files[0];
       if (f.type && f.type.indexOf("image") === 0) {
+        // 有绝对路径（Electron 老版本 File.path）→ 直接用 file:// 渲染，不上传
+        if (f.path) {
+          addImage("file://" + f.path, f.name || "文件图片");
+          orca.notify("success", "已加入背景图库");
+          return;
+        }
+        // 无 path（新版 Electron）→ 降采样后上传仓库 assets
         try {
           var assetPath = await importFileToAssets(f);
           addImage(assetPath, f.name || "文件图片");
