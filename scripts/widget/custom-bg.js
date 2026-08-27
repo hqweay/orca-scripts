@@ -35,24 +35,34 @@ body.itx-bg .orca-panels-container {
   var detachDrop = null;
   var containerRef = null;
 
+  function currentSrc() {
+    var it = state.list[state.idx];
+    return it ? it.src : "";
+  }
+
   function loadState() {
     var s = $inject.storage.get("state") || {};
-    return {
-      list: Array.isArray(s.list) ? s.list : [],
-      current: s.current || "",
-    };
+    var list = Array.isArray(s.list) ? s.list : [];
+    var idx = Number(s.idx);
+    if (!Number.isFinite(idx) || idx < 0 || idx >= list.length) idx = list.length - 1;
+    return { list: list, idx: idx };
   }
   function saveState() {
     try {
-      $inject.storage.set("state", { list: state.list.slice(0, MAX_IMAGES), current: state.current });
+      $inject.storage.set("state", { list: state.list.slice(0, MAX_IMAGES), idx: state.idx });
     } catch (e) {
       orca.notify("error", "图库保存失败（图片可能过大），已保留当前背景");
-      $inject.storage.set("state", { list: [{ src: state.current, name: "", at: Date.now() }], current: state.current });
+      var cur = currentSrc();
+      $inject.storage.set("state", { list: [{ src: cur, name: "", at: Date.now() }], idx: 0 });
     }
   }
 
+  // CSS 变量用（双引号）；HTML style 属性用（单引号，避免内嵌双引号截断属性）
   function bgUrl(src) {
-    return "url(\"" + String(src).replace(/"/g, '\\"') + "\")";
+    return 'url("' + String(src).replace(/"/g, '\\"') + '")';
+  }
+  function bgUrlHtml(src) {
+    return "url('" + String(src).replace(/'/g, "\\'") + "')";
   }
 
   /** 相对路径 → 可加载的资产 URL（对齐 workbench random 的 resolveAssetUrl）。 */
@@ -72,14 +82,15 @@ body.itx-bg .orca-panels-container {
   function applyBg() {
     document.body.classList.remove("itx-bg");
     document.body.style.removeProperty("--itx-bg-image");
-    if (!state.current) return;
+    var src = currentSrc();
+    if (!src) return;
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.textContent = BG_CSS;
       document.head.appendChild(styleEl);
     }
     document.body.classList.add("itx-bg");
-    document.body.style.setProperty("--itx-bg-image", bgUrl(state.current));
+    document.body.style.setProperty("--itx-bg-image", bgUrl(src));
   }
 
   function readImageFile(file) {
@@ -108,20 +119,32 @@ body.itx-bg .orca-panels-container {
   }
 
   function addImage(src, name) {
-    state.list = state.list.filter(function (it) { return it.src !== src; });
-    state.list.push({ src: src, name: name || "", at: Date.now() });
-    if (state.list.length > MAX_IMAGES) state.list = state.list.slice(-MAX_IMAGES);
-    state.current = src;
+    var existed = state.list.findIndex(function (it) { return it.src === src; });
+    if (existed >= 0) {
+      state.idx = existed; // 重复拖入同一张 → 切过去
+    } else {
+      state.list.push({ src: src, name: name || "", at: Date.now() });
+      if (state.list.length > MAX_IMAGES) state.list = state.list.slice(-MAX_IMAGES);
+      state.idx = state.list.length - 1;
+    }
     saveState();
     applyBg();
     renderWidget();
   }
   function removeImage(src) {
-    state.list = state.list.filter(function (it) { return it.src !== src; });
-    if (state.current === src) {
-      state.current = state.list.length ? state.list[state.list.length - 1].src : "";
-    }
+    var i = state.list.findIndex(function (it) { return it.src === src; });
+    if (i < 0) return;
+    state.list.splice(i, 1);
+    if (state.idx === i) state.idx = state.list.length ? Math.min(i, state.list.length - 1) : -1;
+    else if (state.idx > i) state.idx -= 1;
     saveState();
+    applyBg();
+    renderWidget();
+  }
+  function switchImage(i) {
+    if (i < 0 || i >= state.list.length) return;
+    state.idx = i;
+    saveState(); // 只写一个数字，很轻
     applyBg();
     renderWidget();
   }
@@ -165,7 +188,6 @@ body.itx-bg .orca-panels-container {
       var repr = null;
       for (var j = 0; j < props.length; j++) { if (props[j].name === "_repr") repr = props[j].value; }
       if (repr && repr.type === "image" && repr.src) {
-        // 相对路径 → file:// 资产 URL（对齐 random 的换算），解析不出就跳过
         var url = resolveAssetUrl(repr.src);
         if (url) {
           addImage(url, "图片块");
@@ -180,15 +202,16 @@ body.itx-bg .orca-panels-container {
   }
 
   function buildHtml() {
+    var cur = currentSrc();
     var thumbs = state.list.map(function (it, i) {
-      return '<div class="itx-bg-thumb' + (it.src === state.current ? ' itx-on' : '') + '" data-i="' + i + '" style="background-image:' + bgUrl(it.src) + '">' +
+      return '<div class="itx-bg-thumb' + (i === state.idx ? ' itx-on' : '') + '" data-i="' + i + '" style="background-image:' + bgUrlHtml(it.src) + '">' +
         '<span class="itx-bg-thumb-x" data-x="' + i + '" title="移除">×</span></div>';
     }).join("");
     return [
       '<div class="itx-bg-widget">',
       '<div class="itx-bg-label">自定义背景（' + state.list.length + '/' + MAX_IMAGES + '）</div>',
       '<div class="itx-bg-drop">把图片拖到这里<br><small style="opacity:.6">本地文件 / 图片链接 / 笔记图片块</small></div>',
-      state.current ? '<div class="itx-bg-preview" style="background-image:' + bgUrl(state.current) + '"></div>' : '',
+      cur ? '<div class="itx-bg-preview" style="background-image:' + bgUrlHtml(cur) + '"></div>' : '',
       state.list.length ? '<div class="itx-bg-thumbs">' + thumbs + '</div>' : '<div class="itx-bg-empty">还没有图片，拖一张进来</div>',
       '<div class="itx-bg-actions"><button class="itx-bg-clear">清除全部</button></div>',
       '</div>',
@@ -205,7 +228,6 @@ body.itx-bg .orca-panels-container {
         e.preventDefault();
         drop.classList.remove("itx-drop-active");
         var dt = e.dataTransfer;
-        // 块拖拽（orca/* 载荷）→ 不拦截，交给容器层的 attachBlockDrop 解析
         if (hasBlockPayload(dt)) return;
         e.stopPropagation();
         void handleDrop(dt);
@@ -214,13 +236,12 @@ body.itx-bg .orca-panels-container {
     if (clear) {
       clear.addEventListener("click", function () {
         state.list = [];
-        state.current = "";
+        state.idx = -1;
         saveState();
         applyBg();
         renderWidget();
       });
     }
-    // 缩略图点击切换 / × 移除（事件委托在容器上，重渲染后仍有效）
     container.addEventListener("click", function (e) {
       var x = e.target.closest(".itx-bg-thumb-x");
       if (x) {
@@ -230,21 +251,12 @@ body.itx-bg .orca-panels-container {
         return;
       }
       var t = e.target.closest(".itx-bg-thumb");
-      if (t) {
-        var ti = Number(t.getAttribute("data-i"));
-        var item = state.list[ti];
-        if (item) {
-          state.current = item.src;
-          saveState();
-          applyBg();
-          renderWidget();
-        }
-      }
+      if (t) switchImage(Number(t.getAttribute("data-i")));
     });
   }
 
   function renderWidget() {
-    try { handle.setStatus(state.current ? "背景 " + state.list.length + " 张" : "无背景"); } catch (e) {}
+    try { handle.setStatus(currentSrc() ? "背景 " + state.list.length + " 张" : "无背景"); } catch (e) {}
     if (!containerRef) return;
     containerRef.innerHTML = buildHtml();
     bindWidget(containerRef);
@@ -255,7 +267,7 @@ body.itx-bg .orca-panels-container {
     title: $inject.scriptName,
     icon: "ti ti-photo",
     parent: $inject.scriptGroup || undefined,
-    status: state.current ? "背景 " + state.list.length + " 张" : "无背景",
+    status: currentSrc() ? "背景 " + state.list.length + " 张" : "无背景",
     render: function () { return buildHtml(); },
     onFocus: function (container) {
       if (!widgetStyle) {
@@ -266,7 +278,6 @@ body.itx-bg .orca-panels-container {
       containerRef = container;
       container.innerHTML = buildHtml();
       bindWidget(container);
-      // 笔记图片块拖入（容器层，接收块拖拽）
       if (!detachDrop) detachDrop = $inject.attachBlockDrop(container, function (ids) { void handleBlockDrops(ids); });
       return function () {
         if (detachDrop) { try { detachDrop(); } catch (e) {} detachDrop = null; }
