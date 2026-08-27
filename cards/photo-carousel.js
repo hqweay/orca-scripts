@@ -65,22 +65,13 @@ async function loadState() {
   var idx = Number(state.idx);
   if (!Number.isFinite(idx) || idx < 0 || idx >= state.list.length) state.idx = state.list.length ? 0 : -1;
 }
-/** 写块数据属性：setProperties 只写后端，不自动同步前端 state。
- * 用 writeBlockIntoState 同款做法（get-block 重拉整块写回 state，Valtio 代理广播），
- * 让其它视图（如日记里的同一 embed 块）感知变化自动重跑（对齐 time-log 的
- * syncBlocksAfterBackendWrite）。 */
-function syncStateProps() {
-  return orca.invokeBackend('get-block', BLOCK_ID).then(function (b) {
-    if (b && b.id != null && orca.state && orca.state.blocks) {
-      orca.state.blocks[b.id] = b;
-    }
-  }).catch(function () {});
-}
+/** 写块数据属性（setProperties 持久化到后端）。数据以块为数据源：
+ * 其它视图（如日记里的同一 embed 块）需要时自行刷新重读，不做自动同步。 */
 function saveState() {
   if (BLOCK_ID == null) return;
   orca.commands.invokeEditorCommand('core.editor.setProperties', null, [BLOCK_ID], [
     { name: DATA_PROP, type: 0, value: JSON.stringify(state) },
-  ]).then(syncStateProps).catch(function (e) {
+  ]).catch(function (e) {
     orca.notify('warn', '保存失败: ' + (e && e.message || e));
   });
 }
