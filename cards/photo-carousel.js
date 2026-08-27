@@ -16,7 +16,7 @@
 </style>
 </div>
 <script>
-// 图片轮播卡片：拖入图片（本地文件 / 图片链接）→ 自动轮播。
+// 图片轮播卡片：拖入图片（本地文件 / 图片链接 / 笔记图片块 / 查询块）→ 自动轮播。
 // 数据存块属性（lets.embed-view.data，JSON）：卡片本质是 embed 块，数据跟笔记走，
 // 导出/同步/备份都带上；写入不动 _repr.html，避免沙箱重挂载。读取每次脚本重跑
 // （挂载/刷新）走 get-block。本地文件优先 File.path 直接 file:// 渲染，无 path
@@ -157,6 +157,87 @@ async function importFileToAssets(file) {
   return String(assetPath);
 }
 
+/** 块拖拽 payload 是否携带 orca 块数据（区分块拖拽与文件/链接拖拽）。 */
+function hasBlockPayload(dt) {
+  if (!dt || !dt.types) return false;
+  return Array.prototype.some.call(dt.types, function (t) {
+    var parts = String(t).split('/');
+    return parts.length === 2 && parts[0] === 'orca';
+  });
+}
+
+/** 解析块拖拽 payload → 块 id 列表（对齐 dragUtils.parseBlockDragData）。 */
+function parseDropBlockIds(dt) {
+  if (!dt || !dt.types) return [];
+  var types = Array.prototype.slice.call(dt.types);
+  var orcaType = types.filter(function (t) {
+    var parts = String(t).split('/');
+    return parts.length === 2 && parts[0] === 'orca';
+  })[0];
+  var data = orcaType ? dt.getData(orcaType) : '';
+  if (!data) data = dt.getData('text/plain');
+  if (!data) return [];
+  var parsed;
+  try { parsed = JSON.parse(data); } catch (e) { parsed = data; }
+  var ids = [];
+  if (parsed && typeof parsed === 'object') {
+    if (parsed.id) ids.push(Number(parsed.id));
+    else if (Array.isArray(parsed.blockIds)) ids = parsed.blockIds.map(Number);
+    else if (Array.isArray(parsed.blocks)) ids = parsed.blocks.map(Number);
+    else if (Array.isArray(parsed) && parsed[0] && parsed[0].id) ids = parsed.map(function (b) { return Number(b.id); });
+  } else if (typeof parsed === 'string' || typeof parsed === 'number') {
+    var n = Number(parsed);
+    if (!isNaN(n) && n > 0) ids.push(n);
+  }
+  return ids.filter(function (id) { return !isNaN(id) && id > 0; });
+}
+
+/** 块是否为图片块（_repr.type === "image"），返回图片 src 或 null。 */
+function imageSrcOf(b) {
+  var repr = null;
+  var props = (b && b.properties) || [];
+  for (var i = 0; i < props.length; i++) {
+    if (props[i].name === '_repr') repr = props[i].value;
+  }
+  if (repr && repr.type === 'image' && repr.src) return String(repr.src);
+  return null;
+}
+
+/** 查询块执行查询 → 结果块 id 列表（对齐 workbench random 的 query 用法）。 */
+async function queryResultIds(b) {
+  var repr = null;
+  var props = (b && b.properties) || [];
+  for (var i = 0; i < props.length; i++) {
+    if (props[i].name === '_repr') repr = props[i].value;
+  }
+  if (!repr || repr.type !== 'query' || !repr.q || !repr.q.q) return [];
+  var ids = await orca.invokeBackend('query', {
+    q: JSON.parse(JSON.stringify(repr.q.q)),
+    pageSize: 100,
+  });
+  return Array.isArray(ids) ? ids : [];
+}
+
+/** 拖入块：图片块直接取图；查询块执行查询收集结果里的所有图片块。 */
+async function handleBlockDrop(ids) {
+  if (!ids || !ids.length) return;
+  var blocks = (await orca.invokeBackend('get-blocks', ids)) || [];
+  var added = 0;
+  for (var i = 0; i < blocks.length; i++) {
+    var src = imageSrcOf(blocks[i]);
+    if (src) { addImage(src, '图片块'); added++; continue; }
+    var qIds = await queryResultIds(blocks[i]);
+    if (!qIds.length) continue;
+    var qBlocks = (await orca.invokeBackend('get-blocks', qIds)) || [];
+    for (var j = 0; j < qBlocks.length; j++) {
+      var qSrc = imageSrcOf(qBlocks[j]);
+      if (qSrc) { addImage(qSrc, '图片块'); added++; }
+    }
+  }
+  if (added) orca.notify('success', '已加入 ' + added + ' 张图片');
+  else orca.notify('warn', '拖入的块里没有图片块');
+}
+
 function handleDrop(dt) {
   if (dt && dt.files && dt.files.length) {
     var f = dt.files[0];
@@ -178,7 +259,7 @@ function handleDrop(dt) {
       if (src) { addImage(src, src); orca.notify('success', '已加入轮播'); return; }
     }
   }
-  orca.notify('warn', '没识别到图片（支持本地文件 / 图片链接）');
+  orca.notify('warn', '没识别到图片（支持本地文件 / 图片链接 / 笔记图片块 / 查询块）');
 }
 
 function thumbHtml(it, i) {
@@ -192,7 +273,7 @@ function render() {
     ? '<div class="cw-stage"><img class="cw-img" src="' + String(resolved(it.src)).replace(/"/g, '&quot;') + '" alt="">' +
       '<span class="cw-count">' + (state.idx + 1) + '/' + state.list.length + '</span></div>' +
       '<div class="cw-thumbs">' + state.list.map(thumbHtml).join('') + '</div>'
-    : '<div class="cw-drop">把图片拖到这里<br><small style="opacity:.65">本地文件 / 图片链接</small></div>';
+    : '<div class="cw-drop">把图片拖到这里<br><small style="opacity:.65">本地文件 / 图片链接 / 图片块 / 查询块</small></div>';
   root.innerHTML = body + '<div class="cw-hint">' + (state.list.length ? '拖入图片加入轮播' : '') + '</div>';
 }
 
@@ -208,8 +289,13 @@ root.addEventListener('dragleave', function () {
 });
 root.addEventListener('drop', function (e) {
   e.preventDefault();
+  e.stopPropagation(); // 阻止冒泡到宿主（workbench dropzone 会把块当 block 管理）
   var d = root.querySelector('.cw-drop');
   if (d) d.classList.remove('cw-active');
+  if (hasBlockPayload(e.dataTransfer)) {
+    var ids = parseDropBlockIds(e.dataTransfer);
+    if (ids.length) { void handleBlockDrop(ids); return; }
+  }
   void handleDrop(e.dataTransfer);
 });
 root.addEventListener('click', function (e) {
