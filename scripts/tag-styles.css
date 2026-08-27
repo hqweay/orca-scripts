@@ -15,7 +15,7 @@
 /* 主行 = 卡片上半（无子块时整卡） */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]) {
   border: 1px solid var(--orca-color-border, rgba(127,127,127,0.2));
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 8px 10px;
   box-shadow: none;
@@ -23,13 +23,13 @@
 /* 有子块 → 主行只留上半圆角，下半交给子块容器 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]):has(+ .orca-repr-children) {
   border-bottom: none;
-  border-radius: 10px 10px 0 0;
+  border-radius: 12px 10px 0 0;
 }
 /* 子块容器 = 卡片主体 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]) + .orca-repr-children {
   border: 1px solid var(--orca-color-border, rgba(127,127,127,0.2));
   border-top: none;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 12px 12px;
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 4px 10px 8px;
 }
@@ -53,7 +53,7 @@
 /* 打上 #卡片列表 的块：每个直接子块各成一张卡片 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main {
   border: 1px solid var(--orca-color-border, rgba(127,127,127,0.2));
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 8px 10px;
   box-shadow: none;
@@ -61,13 +61,13 @@
 /* 子块有自己的子块 → 上半圆角 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main:has(+ .orca-repr-children) {
   border-bottom: none;
-  border-radius: 10px 10px 0 0;
+  border-radius: 12px 10px 0 0;
 }
 /* 子块的子块容器 = 卡片主体 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-children {
   border: 1px solid var(--orca-color-border, rgba(127,127,127,0.2));
   border-top: none;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 12px 12px;
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 4px 10px 8px;
 }
