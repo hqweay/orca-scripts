@@ -1,0 +1,10 @@
+[
+  {
+    "id": "gh-trending",
+    "name": "GitHub 今日热榜",
+    "version": 1,
+    "file": "cards/gh-trending.js",
+    "description": "最近 24 小时创建的 GitHub 仓库，按 Star 数排序",
+    "category": "data"
+  }
+]
