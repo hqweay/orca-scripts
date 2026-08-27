@@ -18,7 +18,7 @@
   {
     "id": "photo-carousel",
     "name": "图片轮播",
-    "version": 2,
+    "version": 3,
     "file": "photo-carousel.js",
     "description": "拖入图片自动轮播，支持本地文件与图片链接；可配置轮播间隔",
     "category": "image"
