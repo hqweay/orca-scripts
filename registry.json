@@ -134,10 +134,73 @@
     "lang": "css"
   },
   {
-    "id": "texture-bg",
-    "name": "纹理背景",
-    "version": 2,
-    "file": "texture-bg.js",
-    "description": "侧边栏挂件：一键切换全局纹理背景（纸感/颗粒/织物），7 种内置（新闻纸/压纹纸/噪点/木纹/颗粒/羽丝/绒面）+ 强度调节，选择自动保存。"
+    "id": "texture-newsprint",
+    "name": "纹理：新闻纸",
+    "version": 1,
+    "file": "texture-newsprint.js",
+    "description": "给整个应用铺一层半调纸感纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。同一组纹理脚本同时只启用一个。",
+    "tagProps": {
+      "group": "纹理"
+    }
+  },
+  {
+    "id": "texture-embossedpaper",
+    "name": "纹理：压纹纸",
+    "version": 1,
+    "file": "texture-embossedpaper.js",
+    "description": "给整个应用铺一层直纹压印纸感纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
+    "tagProps": {
+      "group": "纹理"
+    }
+  },
+  {
+    "id": "texture-noise",
+    "name": "纹理：噪点",
+    "version": 1,
+    "file": "texture-noise.js",
+    "description": "给整个应用铺一层细颗粒噪点纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
+    "tagProps": {
+      "group": "纹理"
+    }
+  },
+  {
+    "id": "texture-wood",
+    "name": "纹理：木纹",
+    "version": 1,
+    "file": "texture-wood.js",
+    "description": "给整个应用铺一层暖棕木纹纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
+    "tagProps": {
+      "group": "纹理"
+    }
+  },
+  {
+    "id": "texture-granule",
+    "name": "纹理：颗粒",
+    "version": 1,
+    "file": "texture-granule.js",
+    "description": "给整个应用铺一层粗颗粒质感纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
+    "tagProps": {
+      "group": "纹理"
+    }
+  },
+  {
+    "id": "texture-feathery",
+    "name": "纹理：羽丝",
+    "version": 1,
+    "file": "texture-feathery.js",
+    "description": "给整个应用铺一层细纤维羽丝纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
+    "tagProps": {
+      "group": "纹理"
+    }
+  },
+  {
+    "id": "texture-velvet",
+    "name": "纹理：绒面",
+    "version": 1,
+    "file": "texture-velvet.js",
+    "description": "给整个应用铺一层柔光绒面纹理（全屏覆盖层 + 混合模式），点代码块或侧边栏开关启用。",
+    "tagProps": {
+      "group": "纹理"
+    }
   }
 ]
