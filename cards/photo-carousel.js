@@ -17,56 +17,60 @@
 </div>
 <script>
 // 图片轮播卡片：拖入图片（本地文件 / 图片链接 / 笔记图片块 / 查询块）→ 自动轮播。
-// 数据存块属性（lets.embed-view.data，JSON）：卡片本质是 embed 块，数据跟笔记走，
-// 导出/同步/备份都带上；写入不动 _repr.html，避免沙箱重挂载。读取每次脚本重跑
-// （挂载/刷新）走 get-block。本地文件优先 File.path 直接 file:// 渲染，无 path
-// 降采样后 upload-asset-binary 存仓库 assets（对齐 custom-bg）。
+// 数据存块属性（lets.embed-view.data，JSON）：卡片本质是 embed 块，数据跟笔记走；
+// 写入不动 _repr.html（避免沙箱重挂载），其它视图需要时刷新重读，不做自动同步。
+// 本地文件优先 File.path 直接 file:// 渲染，无 path 降采样后存仓库 assets（对齐 custom-bg）。
 var BLOCK_ID = (typeof $embed !== 'undefined' && $embed.blockId) || null;
 var DATA_PROP = 'lets.embed-view.data';
+var CONFIG_PROP = 'lets.embed-view.config';
 var root = document.getElementById('cwCard');
 var state = { list: [], idx: -1 };
 var timer = null;
 var INTERVAL_MS = 3000;
 
-// 声明配置项：宿主（workbench ⚙ / embed-view header ⚙）据此渲染通用表单，
-// 配置值存块属性 lets.embed-view.config，脚本重跑时读取应用。
+// 声明配置项：宿主（workbench ⋯ 菜单「卡片配置」/ embed-view header ⚙）据此渲染
+// 通用表单，配置值存块属性 lets.embed-view.config，脚本重跑时读取应用。
 if (typeof $embed !== 'undefined' && $embed.defineConfig) {
   $embed.defineConfig([
     { name: 'interval', label: '轮播间隔（秒）', type: 'number', default: 3 },
   ]);
 }
 
-async function loadConfig() {
-  if (BLOCK_ID == null) return;
+/** 块属性读取（同步，从后端返回的块对象取）。 */
+function propOf(b, name) {
+  var props = (b && b.properties) || [];
+  for (var i = 0; i < props.length; i++) {
+    if (props[i].name === name) return props[i].value;
+  }
+  return undefined;
+}
+/** get-block 读指定属性（异步）。 */
+async function readBlockProp(name) {
+  if (BLOCK_ID == null) return undefined;
   try {
-    var b = await orca.invokeBackend('get-block', BLOCK_ID);
-    var props = (b && b.properties) || [];
-    for (var i = 0; i < props.length; i++) {
-      if (props[i].name === 'lets.embed-view.config') {
-        var cfg = JSON.parse(props[i].value);
-        var n = Number(cfg && cfg.interval);
-        if (Number.isFinite(n) && n > 0) INTERVAL_MS = n * 1000;
-      }
-    }
+    return propOf(await orca.invokeBackend('get-block', BLOCK_ID), name);
+  } catch (e) { return undefined; }
+}
+
+async function loadConfig() {
+  var raw = await readBlockProp(CONFIG_PROP);
+  if (typeof raw !== 'string') return;
+  try {
+    var n = Number(JSON.parse(raw).interval);
+    if (Number.isFinite(n) && n > 0) INTERVAL_MS = n * 1000;
   } catch (e) {}
 }
 
 async function loadState() {
-  if (BLOCK_ID == null) return;
-  var b = null;
-  try { b = await orca.invokeBackend('get-block', BLOCK_ID); } catch (e) {}
-  var props = (b && b.properties) || [];
-  for (var i = 0; i < props.length; i++) {
-    if (props[i].name === DATA_PROP) {
-      try { state = JSON.parse(props[i].value); } catch (e) {}
-    }
+  var raw = await readBlockProp(DATA_PROP);
+  if (typeof raw === 'string') {
+    try { state = JSON.parse(raw); } catch (e) {}
   }
   if (!Array.isArray(state.list)) state.list = [];
   var idx = Number(state.idx);
   if (!Number.isFinite(idx) || idx < 0 || idx >= state.list.length) state.idx = state.list.length ? 0 : -1;
 }
-/** 写块数据属性（setProperties 持久化到后端）。数据以块为数据源：
- * 其它视图（如日记里的同一 embed 块）需要时自行刷新重读，不做自动同步。 */
+/** 写块数据属性（setProperties 持久化到后端）。数据以块为数据源。 */
 function saveState() {
   if (BLOCK_ID == null) return;
   orca.commands.invokeEditorCommand('core.editor.setProperties', null, [BLOCK_ID], [
@@ -157,25 +161,20 @@ async function importFileToAssets(file) {
   return String(assetPath);
 }
 
-/** 块拖拽 payload 是否携带 orca 块数据（区分块拖拽与文件/链接拖拽）。 */
-function hasBlockPayload(dt) {
-  if (!dt || !dt.types) return false;
-  return Array.prototype.some.call(dt.types, function (t) {
+/** 块拖拽 payload 的 orca 类型名（无则 null）。 */
+function orcaTypeOf(dt) {
+  if (!dt || !dt.types) return null;
+  return Array.prototype.slice.call(dt.types).filter(function (t) {
     var parts = String(t).split('/');
     return parts.length === 2 && parts[0] === 'orca';
-  });
+  })[0] || null;
 }
+function hasBlockPayload(dt) { return orcaTypeOf(dt) != null; }
 
 /** 解析块拖拽 payload → 块 id 列表（对齐 dragUtils.parseBlockDragData）。 */
 function parseDropBlockIds(dt) {
-  if (!dt || !dt.types) return [];
-  var types = Array.prototype.slice.call(dt.types);
-  var orcaType = types.filter(function (t) {
-    var parts = String(t).split('/');
-    return parts.length === 2 && parts[0] === 'orca';
-  })[0];
-  var data = orcaType ? dt.getData(orcaType) : '';
-  if (!data) data = dt.getData('text/plain');
+  var orcaType = orcaTypeOf(dt);
+  var data = orcaType ? dt.getData(orcaType) : dt ? dt.getData('text/plain') : '';
   if (!data) return [];
   var parsed;
   try { parsed = JSON.parse(data); } catch (e) { parsed = data; }
@@ -192,26 +191,17 @@ function parseDropBlockIds(dt) {
   return ids.filter(function (id) { return !isNaN(id) && id > 0; });
 }
 
-/** 块是否为图片块（_repr.type === "image"），返回图片 src 或 null。 */
+/** 图片块（_repr.type === "image"）的 src，非图片块返回 null。 */
 function imageSrcOf(b) {
-  var repr = null;
-  var props = (b && b.properties) || [];
-  for (var i = 0; i < props.length; i++) {
-    if (props[i].name === '_repr') repr = props[i].value;
-  }
-  if (repr && repr.type === 'image' && repr.src) return String(repr.src);
-  return null;
+  var repr = propOf(b, '_repr');
+  return (repr && repr.type === 'image' && repr.src) ? String(repr.src) : null;
 }
 
 /** 查询块执行查询 → 图片块 id 列表。
- * 在查询层面 AND 上「_repr.type = image」过滤（kind 9 类型条件，op 5 = QueryHas，
- * 运行时必须显式给 op），而非拉回全部结果再 JS 遍历过滤。 */
+ * 查询层面 AND 上「_repr.type = image」过滤（kind 9 类型条件，op 5 = QueryHas），
+ * 而非拉回全部结果再 JS 遍历。 */
 async function queryImageIds(b) {
-  var repr = null;
-  var props = (b && b.properties) || [];
-  for (var i = 0; i < props.length; i++) {
-    if (props[i].name === '_repr') repr = props[i].value;
-  }
+  var repr = propOf(b, '_repr');
   if (!repr || repr.type !== 'query' || !repr.q || !repr.q.q) return [];
   var q = JSON.parse(JSON.stringify(repr.q.q));
   var imgFilter = { kind: 9, types: { op: 5, value: ['image'] } };
@@ -281,28 +271,22 @@ function render() {
   root.innerHTML = body + '<div class="cw-hint">' + (state.list.length ? '拖入图片加入轮播' : '') + '</div>';
 }
 
-// 完整大图：点缩略图区大图打开（contain 完整显示），滚轮缩放，点击/Esc 关闭。
 // 事件委托一次绑定（render 重建 innerHTML 不影响 root 上的监听）。
-root.addEventListener('dragenter', function (e) {
-  e.preventDefault();
-  e.stopPropagation(); // 阻止 dragenter 冒泡到块容器显示「拖放文件以插入」
-});
+// 拖拽三件套统一 stopPropagation：阻止冒泡到块容器触发宿主「拖放文件以插入」。
+function stopDrag(e) { e.preventDefault(); e.stopPropagation(); }
+root.addEventListener('dragenter', stopDrag);
 root.addEventListener('dragover', function (e) {
-  e.preventDefault();
-  e.stopPropagation(); // 阻止冒泡到块容器触发「拖放文件以插入」（配合 workbench 层拦空白）
+  stopDrag(e);
   var d = root.querySelector('.cw-drop');
   if (d) d.classList.add('cw-active');
 });
 root.addEventListener('dragleave', function (e) {
   e.stopPropagation();
-});
-root.addEventListener('dragleave', function () {
   var d = root.querySelector('.cw-drop');
   if (d) d.classList.remove('cw-active');
 });
 root.addEventListener('drop', function (e) {
-  e.preventDefault();
-  e.stopPropagation(); // 阻止冒泡到宿主（workbench dropzone 会把块当 block 管理）
+  stopDrag(e);
   var d = root.querySelector('.cw-drop');
   if (d) d.classList.remove('cw-active');
   if (hasBlockPayload(e.dataTransfer)) {

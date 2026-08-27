@@ -18,7 +18,7 @@
   {
     "id": "photo-carousel",
     "name": "图片轮播",
-    "version": 13,
+    "version": 14,
     "file": "photo-carousel.js",
     "description": "拖入图片自动轮播（本地文件/图片链接/图片块/查询块），完整展示不截取",
     "category": "image"
