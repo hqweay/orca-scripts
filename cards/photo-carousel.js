@@ -285,6 +285,7 @@ function render() {
 // 事件委托一次绑定（render 重建 innerHTML 不影响 root 上的监听）。
 root.addEventListener('dragover', function (e) {
   e.preventDefault();
+  e.stopPropagation(); // 阻止冒泡到块容器触发「拖放文件以插入」（配合 workbench 层拦空白）
   var d = root.querySelector('.cw-drop');
   if (d) d.classList.add('cw-active');
 });
