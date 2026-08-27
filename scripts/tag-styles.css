@@ -18,7 +18,8 @@
   border-radius: 10px;
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 8px 10px;
-  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: none;
+  transition: background 0.15s;
 }
 /* 有子块 → 主行只留上半圆角，下半交给子块容器 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]):has(+ .orca-repr-children) {
@@ -56,7 +57,8 @@
   border-radius: 10px;
   background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
   padding: 8px 10px;
-  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: none;
+  transition: background 0.15s;
 }
 /* 子块有自己的子块 → 上半圆角 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main:has(+ .orca-repr-children) {
@@ -74,6 +76,10 @@
 /* 兄弟卡片间距（margin-top 相邻折叠，卡片间约 8px，首卡与父块也留出呼吸） */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block {
   margin-top: 8px;
+}
+/* 卡片列表模式下隐藏层级 scope-line（卡片内部竖线干扰，去掉更干净） */
+.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children .orca-repr-scope-line {
+  display: none;
 }
 /* hover 微交互：背景加深 */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main:hover {
