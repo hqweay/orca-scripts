@@ -193,5 +193,13 @@
     "tagProps": {
       "group": "纹理"
     }
+  },
+  {
+    "id": "custom-bg",
+    "name": "自定义背景",
+    "version": 1,
+    "file": "widget/custom-bg.js",
+    "description": "侧边栏挂件：把图片拖进来（本地文件 / 图片链接 / 笔记图片块）作为全局背景，cover 铺满，自动保存，可清除。",
+    "category": "widget"
   }
 ]
