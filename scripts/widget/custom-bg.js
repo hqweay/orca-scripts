@@ -4,10 +4,13 @@
  * 支持保留多张图片：拖入的图片进图库，点缩略图切换背景，可单独移除。
  *
  * 图片存储策略（对齐 orca-neo / workbench random 的资产机制）：
- *   - 本地文件：降采样后经 upload-asset-binary 存入仓库 assets → 存相对路径，
+ *   - 本地文件：优先用 File.path 绝对路径 → file:// 直接渲染（零存储、零上传）；
+ *     无 path 的 Electron 版本退化为降采样后 upload-asset-binary 存入仓库 assets，
  *     渲染用 file://<repoDir>/assets/<name> 绝对路径（无 base64 膨胀）；
  *   - 图片链接：直接存 URL；
  *   - 笔记图片块：读 _repr.src（相对路径）同样转 file:// 渲染。
+ * 自愈：全局背景挂在 body 的 class/变量上，生命周期不受控，MutationObserver 观察
+ * body 的 class/style 被外部改动后防抖补画（写前先比较，值一致跳过，避免自触发循环）。
  *
  * 参考：https://github.com/Eon-Wen/Orca-neo（自定义背景图实现；类名/变量改为 itx 命名空间）。
  */
@@ -36,6 +39,7 @@ body.itx-bg .orca-panels-container {
   var MAX_IMAGES = 6;
   var styleEl = null;
   var widgetStyle = null;
+  var bgObserver = null;
   var state = loadState();
   var detachDrop = null;
   var containerRef = null;
@@ -84,18 +88,37 @@ body.itx-bg .orca-panels-container {
     return "url('" + String(src).replace(/'/g, "\\'") + "')";
   }
 
+  // 自愈铁律：全局副作用（body class/变量）生命周期不受控，主题切换、其它插件、
+  // Orca 重渲染都可能抹掉。写之前先比较，值一致就跳过——避免自触发观察器造成循环。
   function applyBg() {
-    document.body.classList.remove("itx-bg");
-    document.body.style.removeProperty("--itx-bg-image");
     var src = resolved(currentRaw());
-    if (!src) return;
+    var targetVar = src ? bgUrl(src) : "";
+    var curVar = document.body.style.getPropertyValue("--itx-bg-image");
+    var has = document.body.classList.contains("itx-bg");
+    if (has === !!src && curVar === targetVar) return;
+    document.body.classList.toggle("itx-bg", !!src);
+    if (!src) {
+      document.body.style.removeProperty("--itx-bg-image");
+      return;
+    }
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.textContent = BG_CSS;
       document.head.appendChild(styleEl);
     }
-    document.body.classList.add("itx-bg");
-    document.body.style.setProperty("--itx-bg-image", bgUrl(src));
+    document.body.style.setProperty("--itx-bg-image", targetVar);
+  }
+
+  /** 观察 body 的 class/style 被外部改动，防抖后补画背景。只监听 attribute，
+   *  不订阅 subtree（body 下节点变化是事件风暴）。 */
+  function ensureBgObserver() {
+    if (bgObserver) return;
+    var timer = 0;
+    bgObserver = new MutationObserver(function () {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(function () { try { applyBg(); } catch (e) {} }, 200);
+    });
+    bgObserver.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
   }
 
   function readImageDataUrl(file) {
@@ -306,7 +329,9 @@ body.itx-bg .orca-panels-container {
   });
 
   applyBg();
+  ensureBgObserver();
   $inject.onUnload(function () {
+    if (bgObserver) { bgObserver.disconnect(); bgObserver = null; }
     document.body.classList.remove("itx-bg");
     document.body.style.removeProperty("--itx-bg-image");
     try { handle.unregister(); } catch (e) {}
