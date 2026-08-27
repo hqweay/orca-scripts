@@ -26,6 +26,30 @@ var DATA_PROP = 'lets.embed-view.data';
 var root = document.getElementById('cwCard');
 var state = { list: [], idx: -1 };
 var timer = null;
+var INTERVAL_MS = 3000;
+
+// 声明配置项：宿主（workbench ⚙ / embed-view header ⚙）据此渲染通用表单，
+// 配置值存块属性 lets.embed-view.config，脚本重跑时读取应用。
+if (typeof $embed !== 'undefined' && $embed.defineConfig) {
+  $embed.defineConfig([
+    { name: 'interval', label: '轮播间隔（秒）', type: 'number', default: 3 },
+  ]);
+}
+
+async function loadConfig() {
+  if (BLOCK_ID == null) return;
+  try {
+    var b = await orca.invokeBackend('get-block', BLOCK_ID);
+    var props = (b && b.properties) || [];
+    for (var i = 0; i < props.length; i++) {
+      if (props[i].name === 'lets.embed-view.config') {
+        var cfg = JSON.parse(props[i].value);
+        var n = Number(cfg && cfg.interval);
+        if (Number.isFinite(n) && n > 0) INTERVAL_MS = n * 1000;
+      }
+    }
+  } catch (e) {}
+}
 
 async function loadState() {
   if (BLOCK_ID == null) return;
@@ -69,7 +93,7 @@ function next() {
 function startAuto() {
   stopAuto();
   if (state.list.length < 2) return;
-  timer = setInterval(next, 3000);
+  timer = setInterval(next, INTERVAL_MS);
 }
 function stopAuto() { if (timer) { clearInterval(timer); timer = null; } }
 function switchImage(i) {
@@ -196,6 +220,7 @@ root.addEventListener('mouseenter', stopAuto);
 root.addEventListener('mouseleave', startAuto);
 
 await loadState();
+await loadConfig();
 render();
 startAuto();
 </script>
