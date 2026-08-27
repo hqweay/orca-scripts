@@ -14,5 +14,13 @@
     "file": "random-wallpaper.js",
     "description": "Lorem Picsum 随机壁纸，刷新组件即换图",
     "category": "image"
+  },
+  {
+    "id": "photo-carousel",
+    "name": "图片轮播",
+    "version": 1,
+    "file": "photo-carousel.js",
+    "description": "拖入图片自动轮播，支持本地文件与图片链接",
+    "category": "image"
   }
 ]
