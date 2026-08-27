@@ -149,5 +149,49 @@
     "description": "给块打上指定标签即应用对应样式：#卡片 让该块（含子块）成卡片，#卡片列表 让每个子块各成一张卡片。",
     "lang": "css",
     "category": "layout"
+  },
+  {
+    "id": "texture-newsprint",
+    "name": "纹理：新闻纸",
+    "version": 1,
+    "file": "texture/texture-newsprint.js",
+    "description": "给整个应用铺一层半调纸感纹理（整屏覆盖）（全屏覆盖层 + 混合模式，含暗色适配）。点代码块或侧边栏开关启用；同一组纹理同时只启用一个。",
+    "category": "texture",
+    "tagProps": {
+      "group": "纹理"
+    }
+  },
+  {
+    "id": "texture-granule",
+    "name": "纹理：颗粒",
+    "version": 1,
+    "file": "texture/texture-granule.js",
+    "description": "给整个应用铺一层粗颗粒质感纹理（全屏覆盖层 + 混合模式，含暗色适配）。点代码块或侧边栏开关启用；同一组纹理同时只启用一个。",
+    "category": "texture",
+    "tagProps": {
+      "group": "纹理"
+    }
+  },
+  {
+    "id": "texture-feathery",
+    "name": "纹理：羽丝",
+    "version": 1,
+    "file": "texture/texture-feathery.js",
+    "description": "给整个应用铺一层细纤维羽丝纹理（全屏覆盖层 + 混合模式，含暗色适配）。点代码块或侧边栏开关启用；同一组纹理同时只启用一个。",
+    "category": "texture",
+    "tagProps": {
+      "group": "纹理"
+    }
+  },
+  {
+    "id": "texture-velvet",
+    "name": "纹理：绒面",
+    "version": 1,
+    "file": "texture/texture-velvet.js",
+    "description": "给整个应用铺一层柔光绒面纹理（全屏覆盖层 + 混合模式，含暗色适配）。点代码块或侧边栏开关启用；同一组纹理同时只启用一个。",
+    "category": "texture",
+    "tagProps": {
+      "group": "纹理"
+    }
   }
 ]
