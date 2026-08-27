@@ -1,4 +1,4 @@
-// @inject-template-id: embed-children
+/* @inject-template-id: embed-children */
 /* 块嵌入子项
  * 让打上「块嵌入子项」标签的块,在作为镜像块嵌入到其他页面时,
  * 自动穿透展示它的全部子项,并应用无缝样式(去缩进、统一列表图标与缩进线)。

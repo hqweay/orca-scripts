@@ -18,7 +18,8 @@
     "name": "块嵌入子项",
     "version": 1,
     "file": "embed-children.js",
-    "description": "让「块嵌入子项」标签的镜像块自动穿透展示全部子项，并应用无缝样式。"
+    "description": "让「块嵌入子项」标签的镜像块自动穿透展示全部子项，并应用无缝样式。",
+    "lang": "css"
   },
   {
     "id": "font-color",
@@ -123,5 +124,13 @@
     "tagProps": {
       "shortcut": "meta+shift+l"
     }
+  },
+  {
+    "id": "tag-styles",
+    "name": "标签样式",
+    "version": 1,
+    "file": "tag-styles.css",
+    "description": "给块打上指定标签即应用对应样式：如 #卡片 标签让该块（含子块）变成一张卡片。",
+    "lang": "css"
   }
 ]
