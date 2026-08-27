@@ -1,12 +1,14 @@
 /* @inject-template-id: tag-styles */
 /* 标签样式
- * 给块打上指定标签即应用对应样式（如 #卡片 → 卡片样式）。
+ * 给块打上指定标签即应用对应样式。
  *
  * 结构依据（宿主 DOM）：
  *   .orca-block > .orca-repr > (.orca-repr-main | .orca-repr-children)
  *   .orca-repr-main > .orca-repr-main-content > .orca-tags > .orca-tag[data-name="标签名"]
  *
- * 使用：给任意块打上「卡片」标签 → 该块（含子块）整体变成一张卡片。
+ * 内置样式：
+ *   #卡片       → 该块（含子块）整体变成一张卡片
+ *   #卡片列表   → 该块的每个直接子块各变成一张卡片
  * 想加新样式 → 复制一份「====== 样式 ======」段，把标签名与样式换掉。
  */
 /* ====================== 卡片 ====================== */
@@ -32,5 +34,31 @@
 }
 /* 卡片内隐藏「卡片」样式标签 chip（想保留可删掉这一段） */
 .orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片"]) > .orca-repr-main-content > .orca-tags > .orca-tag[data-name="卡片"] {
+  display: none;
+}
+
+/* ====================== 卡片列表 ====================== */
+/* 打上 #卡片列表 的块：每个直接子块各成一张卡片 */
+.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main {
+  border: 1px solid var(--orca-color-border, rgba(127,127,127,0.2));
+  border-radius: 10px;
+  background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
+  padding: 8px 10px;
+}
+/* 子块有自己的子块 → 上半圆角 */
+.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-main:has(+ .orca-repr-children) {
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+}
+/* 子块的子块容器 = 卡片主体 */
+.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) + .orca-repr-children > .orca-block > .orca-repr > .orca-repr-children {
+  border: 1px solid var(--orca-color-border, rgba(127,127,127,0.2));
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  background: var(--orca-color-bg-1, rgba(255,255,255,0.5));
+  padding: 4px 10px 8px;
+}
+/* 卡片列表内隐藏「卡片列表」样式标签 chip（想保留可删掉这一段） */
+.orca-repr-main:has(.orca-tags > .orca-tag[data-name="卡片列表"]) > .orca-repr-main-content > .orca-tags > .orca-tag[data-name="卡片列表"] {
   display: none;
 }

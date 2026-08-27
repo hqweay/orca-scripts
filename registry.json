@@ -128,9 +128,9 @@
   {
     "id": "tag-styles",
     "name": "标签样式",
-    "version": 1,
+    "version": 2,
     "file": "tag-styles.css",
-    "description": "给块打上指定标签即应用对应样式：如 #卡片 标签让该块（含子块）变成一张卡片。",
+    "description": "给块打上指定标签即应用对应样式：#卡片 让该块（含子块）成卡片，#卡片列表 让每个子块各成一张卡片。",
     "lang": "css"
   }
 ]
