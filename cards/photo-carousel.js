@@ -17,22 +17,38 @@
 </div>
 <script>
 // 图片轮播卡片：拖入图片（本地文件 / 图片链接）→ 自动轮播。
-// 存储：localStorage 按块隔离（$embed.blockId）；本地文件优先 File.path 直接
-// file:// 渲染，无 path 降采样后 upload-asset-binary 存仓库 assets（对齐 custom-bg）。
-var KEY = 'card:photo-carousel:' + ((typeof $embed !== 'undefined' && $embed.blockId) || 'local');
+// 数据存块属性（lets.embed-view.data，JSON）：卡片本质是 embed 块，数据跟笔记走，
+// 导出/同步/备份都带上；写入不动 _repr.html，避免沙箱重挂载。读取每次脚本重跑
+// （挂载/刷新）走 get-block。本地文件优先 File.path 直接 file:// 渲染，无 path
+// 降采样后 upload-asset-binary 存仓库 assets（对齐 custom-bg）。
+var BLOCK_ID = (typeof $embed !== 'undefined' && $embed.blockId) || null;
+var DATA_PROP = 'lets.embed-view.data';
 var root = document.getElementById('cwCard');
-var state = loadState();
+var state = { list: [], idx: -1 };
 var timer = null;
 
-function loadState() {
-  var s = null;
-  try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-  var list = s && Array.isArray(s.list) ? s.list : [];
-  var idx = Number(s && s.idx);
-  if (!Number.isFinite(idx) || idx < 0 || idx >= list.length) idx = list.length ? 0 : -1;
-  return { list: list, idx: idx };
+async function loadState() {
+  if (BLOCK_ID == null) return;
+  var b = null;
+  try { b = await orca.invokeBackend('get-block', BLOCK_ID); } catch (e) {}
+  var props = (b && b.properties) || [];
+  for (var i = 0; i < props.length; i++) {
+    if (props[i].name === DATA_PROP) {
+      try { state = JSON.parse(props[i].value); } catch (e) {}
+    }
+  }
+  if (!Array.isArray(state.list)) state.list = [];
+  var idx = Number(state.idx);
+  if (!Number.isFinite(idx) || idx < 0 || idx >= state.list.length) state.idx = state.list.length ? 0 : -1;
 }
-function saveState() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function saveState() {
+  if (BLOCK_ID == null) return;
+  orca.commands.invokeEditorCommand('core.editor.setProperties', null, [BLOCK_ID], [
+    { name: DATA_PROP, type: 0, value: JSON.stringify(state) },
+  ]).catch(function (e) {
+    orca.notify('warn', '保存失败: ' + (e && e.message || e));
+  });
+}
 
 /** 相对路径 → file:// 绝对路径；外链原样（对齐 custom-bg / workbench random）。 */
 function resolved(src) {
@@ -48,7 +64,6 @@ function resolved(src) {
 function next() {
   if (state.list.length < 2) return;
   state.idx = (state.idx + 1) % state.list.length;
-  saveState();
   render();
 }
 function startAuto() {
@@ -180,6 +195,7 @@ root.addEventListener('click', function (e) {
 root.addEventListener('mouseenter', stopAuto);
 root.addEventListener('mouseleave', startAuto);
 
+await loadState();
 render();
 startAuto();
 </script>
