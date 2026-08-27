@@ -197,9 +197,9 @@
   {
     "id": "custom-bg",
     "name": "自定义背景",
-    "version": 5,
+    "version": 6,
     "file": "widget/custom-bg.js",
-    "description": "侧边栏挂件：把图片拖进来（本地文件 / 图片链接 / 笔记图片块）作为全局背景；支持多张图库，点缩略图实时切换，可单独移除或清除全部。",
+    "description": "侧边栏挂件：拖图片（本地文件存仓库 assets / 链接 / 笔记图片块）作全局背景；多张图库点缩略图切换、可移除；绝对路径渲染，无 base64 膨胀。",
     "category": "widget"
   }
 ]

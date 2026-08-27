@@ -2,7 +2,12 @@
 /* 自定义背景（挂件）
  * 侧边栏挂件：把图片拖进来（本地文件 / 图片链接 / 笔记图片块）作为全局背景。
  * 支持保留多张图片：拖入的图片进图库，点缩略图切换背景，可单独移除。
- * 图片作为应用主背景（cover 铺满），图库自动保存。
+ *
+ * 图片存储策略（对齐 orca-neo / workbench random 的资产机制）：
+ *   - 本地文件：降采样后经 upload-asset-binary 存入仓库 assets → 存相对路径，
+ *     渲染用 file://<repoDir>/assets/<name> 绝对路径（无 base64 膨胀）；
+ *   - 图片链接：直接存 URL；
+ *   - 笔记图片块：读 _repr.src（相对路径）同样转 file:// 渲染。
  *
  * 参考：https://github.com/Eon-Wen/Orca-neo（自定义背景图实现；类名/变量改为 itx 命名空间）。
  */
@@ -35,10 +40,25 @@ body.itx-bg .orca-panels-container {
   var detachDrop = null;
   var containerRef = null;
 
-  function currentSrc() {
+  function currentRaw() {
     var it = state.list[state.idx];
     return it ? it.src : "";
   }
+
+  /** 相对路径 → file:// 绝对路径；外链原样（对齐 workbench random 的 resolveAssetUrl）。 */
+  function resolveAssetUrl(src) {
+    if (!src) return "";
+    if (/^(https?:|data:|blob:|file:)/i.test(src)) return src;
+    var o = (window.orca && orca.state) || {};
+    var dir = (o.repoDir || "").trim();
+    if (!dir && o.dataDir && o.repo) {
+      dir = (String(o.dataDir).replace(/\/+$/, "") + "/repos/" + o.repo);
+    }
+    if (!dir) return "";
+    var name = String(src).replace(/^\.?\//, "").split(/[?#]/)[0];
+    return "file://" + dir + "/assets/" + encodeURI(name);
+  }
+  function resolved(src) { return resolveAssetUrl(src) || src || ""; }
 
   function loadState() {
     var s = $inject.storage.get("state") || {};
@@ -51,13 +71,12 @@ body.itx-bg .orca-panels-container {
     try {
       $inject.storage.set("state", { list: state.list.slice(0, MAX_IMAGES), idx: state.idx });
     } catch (e) {
-      orca.notify("error", "图库保存失败（图片可能过大），已保留当前背景");
-      var cur = currentSrc();
+      orca.notify("error", "图库保存失败，已保留当前背景");
+      var cur = currentRaw();
       $inject.storage.set("state", { list: [{ src: cur, name: "", at: Date.now() }], idx: 0 });
     }
   }
 
-  // CSS 变量用（双引号）；HTML style 属性用（单引号，避免内嵌双引号截断属性）
   function bgUrl(src) {
     return 'url("' + String(src).replace(/"/g, '\\"') + '")';
   }
@@ -65,24 +84,10 @@ body.itx-bg .orca-panels-container {
     return "url('" + String(src).replace(/'/g, "\\'") + "')";
   }
 
-  /** 相对路径 → 可加载的资产 URL（对齐 workbench random 的 resolveAssetUrl）。 */
-  function resolveAssetUrl(src) {
-    if (!src) return "";
-    if (/^(https?:|data:|blob:)/i.test(src)) return src;
-    var o = (window.orca && orca.state) || {};
-    var dir = (o.repoDir || "").trim();
-    if (!dir && o.dataDir && o.repo) {
-      dir = (String(o.dataDir).replace(/\/+$/, "") + "/repos/" + o.repo);
-    }
-    if (!dir) return "";
-    var name = String(src).replace(/^\.?\//, "").split(/[?#]/)[0];
-    return "file://" + dir + "/assets/" + encodeURI(name);
-  }
-
   function applyBg() {
     document.body.classList.remove("itx-bg");
     document.body.style.removeProperty("--itx-bg-image");
-    var src = currentSrc();
+    var src = resolved(currentRaw());
     if (!src) return;
     if (!styleEl) {
       styleEl = document.createElement("style");
@@ -93,7 +98,7 @@ body.itx-bg .orca-panels-container {
     document.body.style.setProperty("--itx-bg-image", bgUrl(src));
   }
 
-  function readImageFile(file) {
+  function readImageDataUrl(file) {
     return new Promise(function (resolve, reject) {
       var r = new FileReader();
       r.onload = function () { resolve(r.result); };
@@ -101,27 +106,38 @@ body.itx-bg .orca-panels-container {
       r.readAsDataURL(file);
     });
   }
-  function downscaleDataUrl(dataUrl, maxDim) {
+  /** data URL → 降采样 Blob（超 maxDim 压到 maxDim，jpg 0.85）。 */
+  function downscaleToBlob(dataUrl, maxDim, type, quality) {
     return new Promise(function (resolve) {
       var img = new Image();
       img.onload = function () {
-        if (img.width <= maxDim && img.height <= maxDim) { resolve(dataUrl); return; }
         var scale = maxDim / Math.max(img.width, img.height);
+        if (scale >= 1) { fetch(dataUrl).then(function (r) { return r.blob(); }).then(resolve); return; }
         var c = document.createElement("canvas");
         c.width = Math.round(img.width * scale);
         c.height = Math.round(img.height * scale);
         c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-        resolve(c.toDataURL("image/jpeg", 0.85));
+        c.toBlob(resolve, type || "image/jpeg", quality || 0.85);
       };
-      img.onerror = function () { resolve(dataUrl); };
+      img.onerror = function () { fetch(dataUrl).then(function (r) { return r.blob(); }).then(resolve); };
       img.src = dataUrl;
     });
+  }
+
+  /** 本地文件 → 上传到仓库 assets，返回相对路径。 */
+  async function importFileToAssets(file) {
+    var dataUrl = await readImageDataUrl(file);
+    var blob = await downscaleToBlob(dataUrl, 1920, file.type || "image/jpeg", 0.85);
+    var buf = await blob.arrayBuffer();
+    var assetPath = await orca.invokeBackend("upload-asset-binary", blob.type || file.type || "image/png", buf);
+    if (!assetPath) throw new Error("上传失败");
+    return String(assetPath);
   }
 
   function addImage(src, name) {
     var existed = state.list.findIndex(function (it) { return it.src === src; });
     if (existed >= 0) {
-      state.idx = existed; // 重复拖入同一张 → 切过去
+      state.idx = existed;
     } else {
       state.list.push({ src: src, name: name || "", at: Date.now() });
       if (state.list.length > MAX_IMAGES) state.list = state.list.slice(-MAX_IMAGES);
@@ -144,7 +160,7 @@ body.itx-bg .orca-panels-container {
   function switchImage(i) {
     if (i < 0 || i >= state.list.length) return;
     state.idx = i;
-    saveState(); // 只写一个数字，很轻
+    saveState();
     applyBg();
     renderWidget();
   }
@@ -158,26 +174,28 @@ body.itx-bg .orca-panels-container {
   }
 
   async function handleDrop(dt) {
-    var src = null;
-    var name = "";
     if (dt && dt.files && dt.files.length) {
       var f = dt.files[0];
       if (f.type && f.type.indexOf("image") === 0) {
-        src = await readImageFile(f);
-        src = await downscaleDataUrl(src, 1920);
-        name = f.name || "";
+        try {
+          var assetPath = await importFileToAssets(f);
+          addImage(assetPath, f.name || "文件图片");
+          orca.notify("success", "已加入背景图库（已存入仓库 assets）");
+          return;
+        } catch (e) {
+          orca.notify("warn", "图片上传失败: " + (e && e.message ? e.message : e));
+          return;
+        }
       }
     }
-    if (!src && dt) {
+    if (dt) {
       var uri = dt.getData("text/uri-list") || dt.getData("text/plain");
-      if (uri) { src = uri.trim().split("\n")[0]; name = src; }
+      if (uri) {
+        var src = uri.trim().split("\n")[0];
+        if (src) { addImage(src, src); orca.notify("success", "已加入背景图库"); return; }
+      }
     }
-    if (src) {
-      addImage(src, name);
-      orca.notify("success", "已加入背景图库");
-    } else {
-      orca.notify("warn", "没识别到图片（支持文件 / 图片链接 / 笔记图片块）");
-    }
+    orca.notify("warn", "没识别到图片（支持文件 / 图片链接 / 笔记图片块）");
   }
 
   async function handleBlockDrops(ids) {
@@ -188,13 +206,8 @@ body.itx-bg .orca-panels-container {
       var repr = null;
       for (var j = 0; j < props.length; j++) { if (props[j].name === "_repr") repr = props[j].value; }
       if (repr && repr.type === "image" && repr.src) {
-        var url = resolveAssetUrl(repr.src);
-        if (url) {
-          addImage(url, "图片块");
-          orca.notify("success", "已加入背景图库（图片块）");
-          return;
-        }
-        orca.notify("warn", "图片块地址解析失败: " + repr.src);
+        addImage(String(repr.src), "图片块");
+        orca.notify("success", "已加入背景图库（图片块）");
         return;
       }
     }
@@ -202,9 +215,9 @@ body.itx-bg .orca-panels-container {
   }
 
   function buildHtml() {
-    var cur = currentSrc();
+    var cur = resolved(currentRaw());
     var thumbs = state.list.map(function (it, i) {
-      return '<div class="itx-bg-thumb' + (i === state.idx ? ' itx-on' : '') + '" data-i="' + i + '" style="background-image:' + bgUrlHtml(it.src) + '">' +
+      return '<div class="itx-bg-thumb' + (i === state.idx ? ' itx-on' : '') + '" data-i="' + i + '" style="background-image:' + bgUrlHtml(resolved(it.src)) + '">' +
         '<span class="itx-bg-thumb-x" data-x="' + i + '" title="移除">×</span></div>';
     }).join("");
     return [
@@ -256,7 +269,7 @@ body.itx-bg .orca-panels-container {
   }
 
   function renderWidget() {
-    try { handle.setStatus(currentSrc() ? "背景 " + state.list.length + " 张" : "无背景"); } catch (e) {}
+    try { handle.setStatus(currentRaw() ? "背景 " + state.list.length + " 张" : "无背景"); } catch (e) {}
     if (!containerRef) return;
     containerRef.innerHTML = buildHtml();
     bindWidget(containerRef);
@@ -267,7 +280,7 @@ body.itx-bg .orca-panels-container {
     title: $inject.scriptName,
     icon: "ti ti-photo",
     parent: $inject.scriptGroup || undefined,
-    status: currentSrc() ? "背景 " + state.list.length + " 张" : "无背景",
+    status: currentRaw() ? "背景 " + state.list.length + " 张" : "无背景",
     render: function () { return buildHtml(); },
     onFocus: function (container) {
       if (!widgetStyle) {
