@@ -58,11 +58,18 @@
   }
 
   var cfg = ($embed && $embed.config) || {};
-  var TAG = String(cfg.tag || "碎碎念").replace(/^#/, "").trim() || "碎碎念";
+  var TAG = String(cfg.tag || "").replace(/^#/, "").trim();
   var COUNT = Math.min(30, Math.max(1, Math.round(Number(cfg.count) || 5)));
   var MODE = cfg.mode === "latest" ? "latest" : "random";
   var SHOW_STATS = cfg.stats !== false;
   var POP_CAP = 1000;
+
+  // 未配置源标签 → 引导态（市场卡的第一屏：告诉用户去哪配）
+  if (!TAG) {
+    app.innerHTML =
+      '<div class="te-state">先配置源标签：点击嵌入块头部的 <b>⚙</b>（工作台卡片用 <b>⋯</b> 菜单）填写标签，保存后自动开始。</div>';
+    return;
+  }
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
