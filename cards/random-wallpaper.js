@@ -1,10 +1,13 @@
 <!-- @inject-template-id: random-wallpaper -->
 <div class="rw-card" id="rwCard">
 <style>
-  .rw-card{position:relative;font-family:var(--orca-font,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif);border-radius:12px;overflow:hidden;box-sizing:border-box;}
+  .rw-card{position:relative;display:flex;flex-direction:column;height:100%;min-height:280px;font-family:var(--orca-font,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif);border-radius:12px;overflow:hidden;box-sizing:border-box;}
+  /* 撑满容器：沙箱里 html/body 被宿主改写为 [data-embed-root]，webview 里是真实文档根，
+     两边都让高度链打通——卡片随容器（嵌入视图拖拽高度 / 工作台 cell）缩放。 */
+  html,body{height:100%;}
   .rw-card *,.rw-card *::before,.rw-card *::after{box-sizing:border-box;}
-  .rw-img{display:block;width:100%;height:420px;object-fit:cover;background:linear-gradient(135deg,#f2f4f7,#e4e7ec);}
-  .rw-foot{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:11px;color:var(--orca-color-text-2,#57606a);}
+  .rw-img{display:block;flex:1;min-height:0;width:100%;object-fit:contain;background:linear-gradient(135deg,#f2f4f7,#e4e7ec);}
+  .rw-foot{flex:none;display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:11px;color:var(--orca-color-text-2,#57606a);}
   .rw-dot{width:6px;height:6px;border-radius:50%;background:var(--orca-color-primary-5,#4078c0);flex:none;}
 </style>
 <img class="rw-img" id="rwImg" alt="随机壁纸">
