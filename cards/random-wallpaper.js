@@ -10,15 +10,17 @@
   .rw-foot{flex:none;display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:11px;color:var(--orca-color-text-2,#57606a);}
   .rw-dot{width:6px;height:6px;border-radius:50%;background:var(--orca-color-primary-5,#4078c0);flex:none;}
   .rw-foot-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .rw-foot-actions{display:flex;gap:2px;flex:none;}
-  .rw-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:transparent;border:none;color:inherit;opacity:.6;cursor:pointer;padding:0;}
+  /* 操作条：悬浮在图片右上角（避开工作台右下角的悬浮按钮组），hover 卡片浮现 */
+  .rw-actions{position:absolute;top:8px;right:8px;display:flex;gap:2px;opacity:0;transition:opacity .12s;background:rgba(0,0,0,.4);border-radius:6px;padding:2px;pointer-events:none;}
+  .rw-card:hover .rw-actions{opacity:1;pointer-events:auto;}
+  .rw-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:transparent;border:none;color:#fff;opacity:.85;cursor:pointer;padding:0;}
   .rw-btn:hover{opacity:1;}
   .rw-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 </style>
 <img class="rw-img" id="rwImg" alt="随机壁纸">
 <div class="rw-foot">
   <i class="rw-dot"></i><span class="rw-foot-text" id="rwFoot">正在加载…</span>
-  <span class="rw-foot-actions" id="rwActions" style="display:none">
+  <span class="rw-actions" id="rwActions" style="display:none">
     <button class="rw-btn" id="rwOpen" title="在浏览器打开原图"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
     <button class="rw-btn" id="rwSave" title="保存到笔记库"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
   </span>
