@@ -1,12 +1,13 @@
 <!-- @inject-template-id: random-wallpaper -->
 <div class="rw-card" id="rwCard">
 <style>
-  .rw-card{position:relative;display:flex;flex-direction:column;height:100%;min-height:280px;font-family:var(--orca-font,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif);border-radius:12px;overflow:hidden;box-sizing:border-box;}
+  .rw-card{position:relative;background:linear-gradient(135deg,#f2f4f7,#e4e7ec);display:flex;flex-direction:column;height:100%;min-height:280px;font-family:var(--orca-font,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif);border-radius:12px;overflow:hidden;box-sizing:border-box;}
   /* 撑满容器：沙箱里 html/body 被宿主改写为 [data-embed-root]，webview 里是真实文档根，
      两边都让高度链打通——卡片随容器（嵌入视图拖拽高度 / 工作台 cell）缩放。 */
   html,body{height:100%;}
   .rw-card *,.rw-card *::before,.rw-card *::after{box-sizing:border-box;}
-  .rw-img{display:block;flex:1;min-height:0;width:100%;object-fit:contain;background:linear-gradient(135deg,#f2f4f7,#e4e7ec);}
+  .rw-img{display:block;flex:1;min-height:0;width:100%;object-fit:contain;opacity:0;transition:opacity .25s ease;}
+  .rw-img.rw-loaded{opacity:1;}
   .rw-foot{flex:none;display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:11px;color:var(--orca-color-text-2,#57606a);}
   .rw-dot{width:6px;height:6px;border-radius:50%;background:var(--orca-color-primary-5,#4078c0);flex:none;}
   .rw-foot-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -17,7 +18,7 @@
   .rw-btn:hover{opacity:1;}
   .rw-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 </style>
-<img class="rw-img" id="rwImg" alt="随机壁纸">
+<img class="rw-img" id="rwImg" alt="">
 <div class="rw-foot">
   <i class="rw-dot"></i><span class="rw-foot-text" id="rwFoot">正在加载…</span>
   <span class="rw-actions" id="rwActions" style="display:none">
@@ -45,6 +46,8 @@ var actions = document.getElementById('rwActions');
 var saveBtn = document.getElementById('rwSave');
 var openBtn = document.getElementById('rwOpen');
 var seed = Math.random().toString(36).slice(2, 10);
+// 淡入控制：load 后才显示图片；失败/未加载期间只露卡片渐变底（无破图图标）
+img.addEventListener("load", function () { img.classList.add("rw-loaded"); });
 // orca 可用性：沙箱=参数/屏蔽后的 window.orca；webview=桥接门面（仅在 allowBridge 开时注入）
 var api = (typeof orca !== 'undefined' && orca) || (typeof window !== 'undefined' && window.orca) || null;
 
@@ -184,6 +187,7 @@ function startTimer(seconds) {
 function setSource(key, url, caption) {
   var token = ++loadingToken;
   img.onerror = function () {
+    img.classList.remove("rw-loaded");
     if (token === loadingToken) tryNext();
   };
   show(url, caption);
