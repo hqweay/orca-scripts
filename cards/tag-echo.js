@@ -64,6 +64,24 @@
   var SHOW_STATS = cfg.stats !== false;
   var POP_CAP = 1000;
 
+  // 声明配置：宿主据此渲染配置表单（嵌入块头部 ⚙ / 工作台卡片 ⋯ 菜单），
+  // 值注入 $embed.config，改配置自动重跑本卡。
+  if ($embed.defineConfig) {
+    $embed.defineConfig([
+      { name: "tag", label: "源标签", type: "text", default: "" },
+      { name: "count", label: "抽样条数（1-30）", type: "number", default: 5 },
+      {
+        name: "mode", label: "模式", type: "select", default: "random",
+        options: [
+          { value: "random", label: "随机回响（刷新重抽）" },
+          { value: "latest", label: "最新优先" },
+        ],
+      },
+      { name: "stats", label: "显示统计画像", type: "checkbox", default: true },
+      { name: "title", label: "自定义标题（留空自动）", type: "text", default: "" },
+    ]);
+  }
+
   // 未配置源标签 → 引导态（市场卡的第一屏：告诉用户去哪配）
   if (!TAG) {
     app.innerHTML =
