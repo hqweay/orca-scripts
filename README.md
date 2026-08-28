@@ -9,6 +9,14 @@
 - `cards.json` — 卡片索引（id / name / version / file / category）
 - `cards/<id>.js` — 卡片 HTML fragment；头部带 `<!-- @inject-template-id: <id> -->` 自描述标记
 
+## 自检
+
+提交前跑一次卡片检查（标记一致性 / 语法 / 配置契约 / 死配置）：
+
+```bash
+node tools/check-cards.mjs
+```
+
 ## 发布流程
 
 1. 修改 `scripts/` 下对应脚本/卡片，**递增 scripts.json / cards.json 里的 version**
