@@ -33,13 +33,12 @@
 //   樱花随机图 / 随机风景 / 随机二次元 / 随机动漫 / Lorem Picsum（国际）/ 全部源轮播。
 // - 轮播（interval > 0）：按秒定时换图；all 源每 tick 随机挑一个源；预加载完成后换图
 //   （不闪白屏）；单张失败自动跳过换下一个源。
-// - 保存（⤓）：把当前图存进仓库 assets（upload-asset-binary）；外链（↗）：浏览器打开原图。
-//   需要 orca 可用（allowBridge 关闭时不显示按钮）。
-// 配置存块属性 lets.embed-view.config，脚本重跑时读取；timer 按 blockId 键控，
-// 重挂（刷新/配置变更）先清旧 timer——沙箱清 Shadow DOM 清不掉宿主 setInterval。
-var BLOCK_ID = (typeof $embed !== 'undefined' && $embed.blockId) || null;
-var CONFIG_PROP = 'lets.embed-view.config';
-var TIMER_KEY = '__rwTimer_' + (BLOCK_ID == null ? 'na' : BLOCK_ID);
+// - 保存（⤓）：$embed.saveAsset 存仓库 assets + $embed.insertBlock 落为卡片子块；
+//   外链（↗）：浏览器打开原图。
+// 配置声明于 $embed.defineConfig，值由宿主注入 $embed.config（改配置自动重跑）；
+// timer 按 blockId 键控，重挂（刷新/配置变更）先清旧 timer——沙箱清 Shadow DOM
+// 清不掉宿主 setInterval。
+var TIMER_KEY = '__rwTimer_' + (($embed && $embed.blockId) != null ? $embed.blockId : 'na');
 var img = document.getElementById('rwImg');
 var foot = document.getElementById('rwFoot');
 var actions = document.getElementById('rwActions');
@@ -51,9 +50,8 @@ img.addEventListener("load", function () { img.classList.add("rw-loaded"); });
 // orca 可用性：沙箱=参数/屏蔽后的 window.orca；webview=桥接门面（仅在 allowBridge 开时注入）
 var api = (typeof orca !== 'undefined' && orca) || (typeof window !== 'undefined' && window.orca) || null;
 
-// 声明配置项：宿主（workbench ⋯ 菜单「卡片配置」/ embed-view header ⚙）据此渲染
-// 通用表单，配置值存块属性 lets.embed-view.config，脚本重跑时读取应用。
-if (typeof $embed !== 'undefined' && $embed.defineConfig) {
+// 声明配置项：宿主渲染通用配置表单，值注入 $embed.config，改配置自动重跑本卡。
+if ($embed.defineConfig) {
   $embed.defineConfig([
     {
       name: 'source', label: '图片源', type: 'select', default: 'bing',
@@ -84,31 +82,14 @@ var ALL_KEYS = ['bing', 'dmoe', 'fj', 'ycy', 'loliapi', 'picsum'];
 var VALID_SOURCES = { bing: 1, all: 1 };
 Object.keys(DIRECT_SOURCES).forEach(function (k) { VALID_SOURCES[k] = 1; });
 
-var preferred = 'bing';
+var cfg = ($embed.config && typeof $embed.config === 'object') ? $embed.config : {};
+var preferred = VALID_SOURCES[cfg.source] ? cfg.source : 'bing';
+var intervalSec = Number(cfg.interval);
 var queue = [];          // 初始加载回退链
 var bingPool = null;     // 必应图池（挂载时拉取一次）
 var currentUrl = '';     // 当前展示图（保存/外链用）
 var loadingToken = 0;    // 防迟到 onerror 串扰
 var rotating = false;    // 轮播 tick 进行中标记
-
-/** 读配置（块属性 lets.embed-view.config），返回 {source, interval}。 */
-async function readConfig() {
-  var cfg = { source: null, interval: 0 };
-  if (BLOCK_ID == null || typeof orca === 'undefined' || !orca) return cfg;
-  try {
-    var b = await orca.invokeBackend('get-block', BLOCK_ID);
-    var props = (b && b.properties) || [];
-    for (var i = 0; i < props.length; i++) {
-      if (props[i].name === CONFIG_PROP && typeof props[i].value === 'string') {
-        var parsed = JSON.parse(props[i].value);
-        if (parsed && VALID_SOURCES[parsed.source]) cfg.source = parsed.source;
-        var n = Number(parsed.interval);
-        if (Number.isFinite(n) && n > 0) cfg.interval = n;
-      }
-    }
-  } catch (e) {}
-  return cfg;
-}
 
 /** 必应图池：官方 API 取 idx=0/8 两页（约 16 天池，idx 再深会被钳制），按日期去重。 */
 async function loadBingPool() {
@@ -211,26 +192,21 @@ function initActions() {
   openBtn.addEventListener('click', function () {
     if (currentUrl) api.invokeBackend('shell-open', currentUrl).catch(function () {});
   });
+  // saveAsset 仅沙箱路径提供（webview 回退经 JSON 桥传不了二进制）——缺失时隐藏保存按钮
+  if (typeof $embed.saveAsset !== 'function') {
+    saveBtn.style.display = 'none';
+    return;
+  }
   saveBtn.addEventListener('click', async function () {
     if (!currentUrl || saveBtn.disabled) return;
     saveBtn.disabled = true;
     try {
       var res = await fetch(currentUrl);
       var blob = await res.blob();
-      var buf = await blob.arrayBuffer();
-      var assetPath = await api.invokeBackend('upload-asset-binary', blob.type || 'image/jpeg', buf);
-      if (!assetPath) throw new Error('上传失败');
+      var assetPath = await $embed.saveAsset(blob);
       // 图片落为卡片块的子块：资产真正进笔记（可被引用、随同步走），展开卡片即可见
-      if (BLOCK_ID != null) {
-        var ref = (api.state && api.state.blocks && api.state.blocks[BLOCK_ID]) || { id: BLOCK_ID };
-        await api.commands.invokeEditorCommand(
-          'core.editor.insertBlock', null, ref, 'lastChild', null,
-          { type: 'image', src: assetPath },
-        );
-        api.notify('success', '已保存为卡片子块：' + assetPath);
-      } else {
-        api.notify('success', '已保存到仓库 assets：' + assetPath);
-      }
+      await $embed.insertBlock({ type: 'image', src: assetPath });
+      api.notify('success', '已保存为卡片子块：' + assetPath);
     } catch (e) {
       api.notify('error', '保存失败：' + (e && e.message || e));
     }
@@ -238,11 +214,9 @@ function initActions() {
   });
 }
 
-(async function () {
+(function () {
   if (window[TIMER_KEY]) { clearInterval(window[TIMER_KEY]); window[TIMER_KEY] = null; }
 
-  var cfg = await readConfig();
-  preferred = cfg.source || 'bing';
   initActions();
 
   // 首图回退链：all 模式随机洗牌；单源模式首选源在前
@@ -256,6 +230,6 @@ function initActions() {
   queue = keys;
   tryNext();
 
-  startTimer(cfg.interval);
+  startTimer(intervalSec);
 })();
 </script>

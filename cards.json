@@ -10,7 +10,7 @@
   {
     "id": "random-wallpaper",
     "name": "随机壁纸",
-    "version": 7,
+    "version": 8,
     "file": "random-wallpaper.js",
     "description": "多源随机壁纸：必应每日（国内直连）/樱花/风景/Picsum/全部源，可轮播、可切换图片源，支持一键保存到笔记库",
     "category": "image"
