@@ -26,7 +26,7 @@
   {
     "id": "tag-echo",
     "name": "标签回响",
-    "version": 1,
+    "version": 2,
     "file": "tag-echo.js",
     "description": "任意标签的重拾与画像：抽样流大字排版、点击跳转原文；月度/时段/星期分布与高频子标签基于全量诚实统计。可配源标签、条数与随机/最新模式。",
     "category": "data"
