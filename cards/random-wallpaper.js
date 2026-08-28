@@ -214,7 +214,17 @@ function initActions() {
       var buf = await blob.arrayBuffer();
       var assetPath = await api.invokeBackend('upload-asset-binary', blob.type || 'image/jpeg', buf);
       if (!assetPath) throw new Error('上传失败');
-      api.notify('success', '已保存到仓库 assets：' + assetPath);
+      // 图片落为卡片块的子块：资产真正进笔记（可被引用、随同步走），展开卡片即可见
+      if (BLOCK_ID != null) {
+        var ref = (api.state && api.state.blocks && api.state.blocks[BLOCK_ID]) || { id: BLOCK_ID };
+        await api.commands.invokeEditorCommand(
+          'core.editor.insertBlock', null, ref, 'lastChild', null,
+          { type: 'image', src: assetPath },
+        );
+        api.notify('success', '已保存为卡片子块：' + assetPath);
+      } else {
+        api.notify('success', '已保存到仓库 assets：' + assetPath);
+      }
     } catch (e) {
       api.notify('error', '保存失败：' + (e && e.message || e));
     }
