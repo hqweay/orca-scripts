@@ -17,12 +17,10 @@
 </div>
 <script>
 // 图片轮播卡片：拖入图片（本地文件 / 图片链接 / 笔记图片块 / 查询块）→ 自动轮播。
-// 数据存块属性（lets.embed-view.data，JSON）：卡片本质是 embed 块，数据跟笔记走；
+// 数据经 $embed.data 读写（lets.embed-view.data 块属性，卡片自有存储）：数据跟笔记走；
 // 写入不动 _repr.html（避免沙箱重挂载），其它视图需要时刷新重读，不做自动同步。
 // 本地文件优先 File.path 直接 file:// 渲染，无 path 降采样后存仓库 assets（对齐 custom-bg）。
 var BLOCK_ID = (typeof $embed !== 'undefined' && $embed.blockId) || null;
-var DATA_PROP = 'lets.embed-view.data';
-var CONFIG_PROP = 'lets.embed-view.config';
 var root = document.getElementById('cwCard');
 var state = { list: [], idx: -1 };
 var timer = null;
@@ -53,29 +51,22 @@ async function readBlockProp(name) {
 }
 
 async function loadConfig() {
-  var raw = await readBlockProp(CONFIG_PROP);
-  if (typeof raw !== 'string') return;
-  try {
-    var n = Number(JSON.parse(raw).interval);
-    if (Number.isFinite(n) && n > 0) INTERVAL_MS = n * 1000;
-  } catch (e) {}
+  var n = Number(($embed.config || {}).interval);
+  if (Number.isFinite(n) && n > 0) INTERVAL_MS = n * 1000;
 }
 
 async function loadState() {
-  var raw = await readBlockProp(DATA_PROP);
-  if (typeof raw === 'string') {
-    try { state = JSON.parse(raw); } catch (e) {}
-  }
+  try {
+    var d = await $embed.data.get();
+    if (d && typeof d === 'object') state = d;
+  } catch (e) {}
   if (!Array.isArray(state.list)) state.list = [];
   var idx = Number(state.idx);
   if (!Number.isFinite(idx) || idx < 0 || idx >= state.list.length) state.idx = state.list.length ? 0 : -1;
 }
 /** 写块数据属性（setProperties 持久化到后端）。数据以块为数据源。 */
 function saveState() {
-  if (BLOCK_ID == null) return;
-  orca.commands.invokeEditorCommand('core.editor.setProperties', null, [BLOCK_ID], [
-    { name: DATA_PROP, type: 0, value: JSON.stringify(state) },
-  ]).catch(function (e) {
+  $embed.data.set(state).catch(function (e) {
     orca.notify('warn', '保存失败: ' + (e && e.message || e));
   });
 }
