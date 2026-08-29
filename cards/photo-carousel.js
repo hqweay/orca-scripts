@@ -27,7 +27,7 @@ var timer = null;
 var INTERVAL_MS = 3000;
 
 // 声明配置项：宿主（workbench ⋯ 菜单「卡片配置」/ embed-view header ⚙）据此渲染
-// 通用表单，配置值存块属性 lets.embed-view.config，脚本重跑时读取应用。
+// 通用表单，配置值由宿主注入 $embed.config（改配置自动重跑本卡）。
 if (typeof $embed !== 'undefined' && $embed.defineConfig) {
   $embed.defineConfig([
     { name: 'interval', label: '轮播间隔（秒）', type: 'number', default: 3 },
