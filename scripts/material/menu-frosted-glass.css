@@ -1,0 +1,320 @@
+/* @inject-template-id: menu-frosted-glass */
+/* 菜单雾光玻璃
+ * 给菜单 / 弹层（右键菜单、斜杠命令、标签触发器、命令面板）铺一层雾光玻璃材质：
+ * 背景模糊 + 饱和度提升 + 内嵌高光与描边，暗色模式另有一套配色。
+ *
+ * 生效范围：支持 oklch 相对色语法与 :has() 的 Chromium（Electron 新版）。
+ * 旧内核走文件末尾的 @supports not 降级分支（普通毛玻璃，不含 oklch 描边）。
+ *
+ * 作者：兴趣使然之人
+ * 来源：https://pd.qq.com/g/hujingbiji/post/B_1583be6ab92e07001441152188553438440X60?subc=685946366
+ * 授权：待确认（原作者未声明；补授权前仅供个人使用，请勿二次分发或商用）
+ */
+@supports (color: oklch(from red calc(l * 0.5) 0 h)) {
+
+  body .orca-menu {
+    isolation: isolate;
+    position: relative !important;
+    background-color: var(--orca-color-bg-1) !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+  }
+
+  body .orca-menu::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow: 0 0 0 3px oklch(from var(--orca-color-bg-1) 0.25 0.03 h / 0.3) inset;
+    filter: blur(7px);
+    transform: translate(0, 16px);
+  }
+
+  body .orca-menu::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow:
+      0 1px 2px -1.5px inset color(display-p3 1.8247962953 1.8247962953 1.8247962953),
+      0 -1px 1.5px -1.5px inset color(display-p3 1.8247962953 1.8247962953 1.8247962953/.8),
+      0 4px 8px -4px color(display-p3 1.1941765347 1.1941765347 1.1941765347/.2),
+      1px 0 0 0 oklch(from var(--orca-color-bg-1) 0.25 c h / 0.15),
+      -1px 0 0 0 oklch(from var(--orca-color-bg-1) 0.25 c h / 0.15),
+      0 0 0 1px oklch(from var(--orca-color-bg-1) 0.25 c h / 0.1),
+      8px 0 16px 0px oklch(from var(--orca-color-bg-1) l c h / 0.6) inset,
+      -8px 0 16px 0px oklch(from var(--orca-color-bg-1) l c h / 0.6) inset;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body .orca-menu {
+      isolation: isolate;
+      background-color: var(--orca-color-bg-3) !important;
+      backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+    }
+    body .orca-menu::before {
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.8) inset;
+    }
+    body .orca-menu::after {
+      box-shadow:
+        0 1px 1px -0.5px inset oklch(from var(--orca-color-bg-1) 0.96 c h / 0.6),
+        0 -1px 1px -0.5px inset oklch(from var(--orca-color-bg-1) 0.96 c h / 0.4),
+        1px 0 0 0 rgba(0, 0, 0, 0.2),
+        -1px 0 0 0 rgba(0, 0, 0, 0.2),
+        0 0 0 1px oklch(from var(--orca-color-text-1) l 0.1 h / 0.05) inset,
+        8px 0 16px 0px oklch(from var(--orca-color-bg-2) calc(l + 0.05) c h / 0.3) inset,
+        -8px 0 16px 0px oklch(from var(--orca-color-bg-2) calc(l + 0.05) c h / 0.3) inset;
+    }
+  }
+
+  body .orca-command-modal {
+    isolation: isolate;
+    background-color: var(--orca-color-bg-1) !important;
+    backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+  }
+  @media (prefers-color-scheme: dark) {
+    body .orca-command-modal {
+      isolation: isolate;
+      background-color: var(--orca-color-bg-3) !important;
+      backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+    }
+  }
+
+  body .ce-popup {
+    isolation: isolate;
+    position: relative !important;
+    background-color: var(--orca-color-bg-1) !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+  }
+  body .ce-popup::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow: 0 0 0 3px oklch(from var(--orca-color-bg-1) 0.25 0.03 h / 0.3) inset;
+    filter: blur(7px);
+    transform: translate(0, 16px);
+  }
+  body .ce-popup::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow:
+      0 1px 2px -1.5px inset color(display-p3 1.8247962953 1.8247962953 1.8247962953),
+      0 -1px 1.5px -1.5px inset color(display-p3 1.8247962953 1.8247962953 1.8247962953/.8),
+      0 4px 8px -4px color(display-p3 1.1941765347 1.1941765347 1.1941765347/.2),
+      1px 0 0 0 oklch(from var(--orca-color-bg-1) 0.25 c h / 0.15),
+      -1px 0 0 0 oklch(from var(--orca-color-bg-1) 0.25 c h / 0.15),
+      0 0 0 1px oklch(from var(--orca-color-bg-1) 0.25 c h / 0.1),
+      8px 0 16px 0px oklch(from var(--orca-color-bg-1) l c h / 0.6) inset,
+      -8px 0 16px 0px oklch(from var(--orca-color-bg-1) l c h / 0.6) inset;
+  }
+  @media (prefers-color-scheme: dark) {
+    body .ce-popup {
+      isolation: isolate;
+      background-color: var(--orca-color-bg-3) !important;
+      backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+    }
+    body .ce-popup::before {
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.8) inset;
+    }
+    body .ce-popup::after {
+      box-shadow:
+        0 1px 1px -0.5px inset oklch(from var(--orca-color-bg-1) 0.96 c h / 0.6),
+        0 -1px 1px -0.5px inset oklch(from var(--orca-color-bg-1) 0.96 c h / 0.4),
+        1px 0 0 0 rgba(0, 0, 0, 0.2),
+        -1px 0 0 0 rgba(0, 0, 0, 0.2),
+        0 0 0 1px oklch(from var(--orca-color-text-1) l 0.1 h / 0.05) inset,
+        8px 0 16px 0px oklch(from var(--orca-color-bg-2) calc(l + 0.05) c h / 0.3) inset,
+        -8px 0 16px 0px oklch(from var(--orca-color-bg-2) calc(l + 0.05) c h / 0.3) inset;
+    }
+  }
+
+  body .orca-menu-text:not(.orca-menu-text-disabled):hover,
+  body .orca-menu .orca-key-selected {
+    background-color: var(--orca-color-menu-highlight) !important;
+  }
+}
+
+@supports not (color: oklch(from red calc(l * 0.5) 0 h)) {
+  body .orca-menu,
+  body .ce-popup {
+    isolation: isolate;
+    position: relative !important;
+    background-color: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+  }
+  body .orca-menu::before,
+  body .ce-popup::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1) inset;
+    filter: blur(7px);
+    transform: translate(0, 16px);
+  }
+  body .orca-menu::after,
+  body .ce-popup::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow:
+      0 1px 2px -1.5px inset rgba(255, 255, 255, 0.9),
+      0 -1px 1.5px -1.5px inset rgba(255, 255, 255, 0.7),
+      0 4px 8px -4px rgba(0, 0, 0, 0.12),
+      0 0 0 1px rgba(0, 0, 0, 0.08);
+  }
+  body .orca-command-modal {
+    isolation: isolate;
+    background-color: #ffffff !important;
+    backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+  }
+  @media (prefers-color-scheme: dark) {
+    body .orca-menu,
+    body .ce-popup {
+      isolation: isolate;
+      background-color: #323232 !important;
+      backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+    }
+    body .orca-menu::before,
+    body .ce-popup::before {
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.8) inset;
+    }
+    body .orca-command-modal {
+      isolation: isolate;
+      background-color: #323232 !important;
+      backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+    }
+  }
+  body .orca-menu-text:not(.orca-menu-text-disabled):hover,
+  body .orca-menu .orca-key-selected {
+    background-color: var(--orca-color-menu-highlight) !important;
+  }
+}
+
+body .orca-menu.orca-slash-commands,
+body .orca-menu.orca-tag-trigger {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border: 1.5px solid oklch(from var(--orca-color-text-1) l c h / 0.14) !important;
+  box-shadow:
+    0 1px 2px -1.5px inset color(display-p3 1.8247962953 1.8247962953 1.8247962953),
+    0 -1px 1.5px -1.5px inset color(display-p3 1.8247962953 1.8247962953 1.8247962953/.8),
+    1px 0 0 0 oklch(from var(--orca-color-bg-1) 0.25 c h / 0.15),
+    -1px 0 0 0 oklch(from var(--orca-color-bg-1) 0.25 c h / 0.15),
+    0 0 0 1px oklch(from var(--orca-color-bg-1) 0.25 c h / 0.1),
+    8px 0 16px 0px oklch(from var(--orca-color-bg-1) l c h / 0.6) inset,
+    -8px 0 16px 0px oklch(from var(--orca-color-bg-1) l c h / 0.6) inset !important;
+  backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(1.1) !important;
+  contain: paint !important;
+  clip-path: inset(0 round calc(var(--orca-radius-md, 8px) + 1px));
+}
+
+body .orca-popup:has(> .orca-menu.orca-slash-commands),
+body .orca-popup:has(> .orca-menu.orca-tag-trigger) {
+  isolation: isolate;
+  border-radius: var(--orca-radius-md, 8px);
+  box-shadow: 0 4px 8px -4px color(display-p3 1.1941765347 1.1941765347 1.1941765347/.2);
+}
+
+body .orca-popup:has(> .orca-menu.orca-slash-commands)::before,
+body .orca-popup:has(> .orca-menu.orca-tag-trigger)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  box-shadow: 0 0 0 3px oklch(from var(--orca-color-bg-1) 0.25 0.03 h / 0.3) inset;
+  filter: blur(7px);
+  transform: translate(0, 16px);
+}
+
+body .orca-menu.orca-slash-commands::before,
+body .orca-menu.orca-slash-commands::after,
+body .orca-menu.orca-tag-trigger::before,
+body .orca-menu.orca-tag-trigger::after {
+  display: none !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  body .orca-menu.orca-slash-commands,
+  body .orca-menu.orca-tag-trigger {
+    backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(0.95) !important;
+    box-shadow:
+      0 1px 1px -0.5px inset oklch(from var(--orca-color-bg-1) 0.96 c h / 0.6),
+      0 -1px 1px -0.5px inset oklch(from var(--orca-color-bg-1) 0.96 c h / 0.4),
+      1px 0 0 0 rgba(0, 0, 0, 0.2),
+      -1px 0 0 0 rgba(0, 0, 0, 0.2),
+      0 0 0 1px oklch(from var(--orca-color-text-1) l 0.1 h / 0.05) inset,
+      8px 0 16px 0px oklch(from var(--orca-color-bg-2) calc(l + 0.05) c h / 0.3) inset,
+      -8px 0 16px 0px oklch(from var(--orca-color-bg-2) calc(l + 0.05) c h / 0.3) inset !important;
+  }
+  body .orca-popup:has(> .orca-menu.orca-slash-commands)::before,
+  body .orca-popup:has(> .orca-menu.orca-tag-trigger)::before {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.8) inset;
+  }
+}
+
+body .orca-slash-commands::-webkit-scrollbar,
+body .orca-tag-trigger::-webkit-scrollbar {
+  width: 6px;
+}
+body .orca-slash-commands::-webkit-scrollbar-track,
+body .orca-tag-trigger::-webkit-scrollbar-track {
+  background: transparent;
+}
+body .orca-slash-commands::-webkit-scrollbar-thumb,
+body .orca-tag-trigger::-webkit-scrollbar-thumb {
+  background: oklch(from var(--orca-color-text-1) l c h / 0.25);
+  border-radius: 3px;
+}
+body .orca-slash-commands::-webkit-scrollbar-thumb:hover,
+body .orca-tag-trigger::-webkit-scrollbar-thumb:hover {
+  background: oklch(from var(--orca-color-text-1) l c h / 0.4);
+}

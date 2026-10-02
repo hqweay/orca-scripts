@@ -201,5 +201,17 @@
     "file": "widget/custom-bg.js",
     "description": "侧边栏挂件：拖图片作全局背景；本地文件优先用绝对路径 file:// 直接渲染（无 path 时降采样存入仓库 assets），支持多张图库点缩略图切换、可移除；背景被外部改动时自动补画。",
     "category": "widget"
+  },
+  {
+    "id": "menu-frosted-glass",
+    "name": "菜单雾光玻璃",
+    "version": 1,
+    "file": "material/menu-frosted-glass.css",
+    "description": "给菜单与弹层（右键菜单、斜杠命令、标签触发器、命令面板）铺一层雾光玻璃材质：背景模糊 + 饱和度提升 + 内嵌高光描边，含暗色适配；依赖 oklch 相对色与 :has()，旧内核自动降级为普通毛玻璃。",
+    "lang": "css",
+    "category": "material",
+    "author": "兴趣使然之人",
+    "source": "https://pd.qq.com/g/hujingbiji/post/B_1583be6ab92e07001441152188553438440X60?subc=685946366",
+    "changelog": "v1 首发：收录作者原始分享，未改动样式逻辑"
   }
 ]
